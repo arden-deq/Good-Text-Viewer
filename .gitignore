@@ -1,0 +1,9 @@
+.DS_Store
+.build/
+.swiftpm/
+dist/
+.omx/
+
+# Xcode user-local state (if the package is opened in Xcode)
+xcuserdata/
+DerivedData/

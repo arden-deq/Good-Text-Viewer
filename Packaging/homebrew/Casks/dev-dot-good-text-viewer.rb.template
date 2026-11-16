@@ -1,0 +1,20 @@
+cask "dev-dot-good-text-viewer" do
+  version "__VERSION__"
+  sha256 "__SHA256__"
+
+  url "https://github.com/__GITHUB_REPOSITORY__/releases/download/v#{version}/Good-Text-Viewer-#{version}-macOS-universal.zip"
+  name "Good Text Viewer"
+  desc "Fast TXT reader with single- and two-page layouts"
+  homepage "https://github.com/__GITHUB_REPOSITORY__"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
+  depends_on macos: ">= :ventura"
+
+  app "Good Text Viewer.app"
+
+  zap trash: "~/Library/Preferences/com.devdot.goodtextviewer.plist"
+end
