@@ -14,14 +14,13 @@ macOS용 경량 `.txt` 전용 뷰어입니다. AppKit만 사용하며 빠른 실
 
 ## Homebrew 설치
 
-macOS 13 이상과 Xcode 16 이상이 필요합니다. 설치 중 이 Mac에서 앱을 빌드합니다.
+macOS 13 이상에서 Apple 공증을 받은 앱을 설치합니다.
 
 ```sh
-brew install arden-deq/tap/good-text-viewer
-good-text-viewer
+brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 ```
 
-파일을 바로 열려면 `good-text-viewer "파일.txt"`를 실행하세요. Homebrew가 tap 신뢰를 요청하면 `brew trust --formula arden-deq/tap/good-text-viewer`를 실행한 뒤 설치를 다시 시도하세요.
+설치 후 응용 프로그램 폴더에서 **Good Text Viewer**를 실행하세요. Homebrew가 tap 신뢰를 요청하면 `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer`를 실행한 뒤 설치를 다시 시도하세요.
 
 ## 빌드 및 실행
 

@@ -1,11 +1,9 @@
 # Dev Dot. Homebrew Tap
 
-This staging tap contains the `dev-dot-good-text-viewer` Cask for Good Text Viewer 1.0.0.
-
-It is currently rendered for `namjungduck/Good-Text-Viewer`. Publish the signed and notarized release asset at the URL in the Cask before announcing this install command:
+Good Text Viewer는 [arden-deq/homebrew-tap](https://github.com/arden-deq/homebrew-tap)에서 배포합니다.
 
 ```sh
-brew install --cask namjungduck/tap/dev-dot-good-text-viewer
+brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 ```
 
-If the GitHub owner or application repository differs, regenerate the Cask from the app project with `./Scripts/render-cask.sh <owner>/<repository>`.
+이 디렉터리의 Cask를 갱신하려면 공증된 릴리스 ZIP을 준비한 후 프로젝트 루트에서 `./Scripts/render-cask.sh arden-deq/Good-Text-Viewer`를 실행하세요.
