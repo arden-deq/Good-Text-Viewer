@@ -2,7 +2,7 @@
 
 **English** · [한국어](README.ko.md)
 
-Good Text Viewer is a lightweight native macOS reader for plain-text (`.txt`) files. It uses AppKit and offers single-page and two-page reading, adjustable typography, and optional line-wrap cleanup for older documents.
+Read plain-text novels like a book on your Mac. Good Text Viewer opens `.txt` files in single-page or two-page view, with adjustable type and optional cleanup for hard-wrapped lines in older files.
 
 Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)
 
@@ -18,9 +18,30 @@ Open **Good Text Viewer** from Applications. If Homebrew requires trust, run `br
 
 You can also download the macOS ZIP from [GitHub Releases](https://github.com/arden-deq/Good-Text-Viewer/releases/latest), unzip it, and move the app to Applications.
 
+## Try an English short story
+
+Open [The Harbor Lantern](Samples/The-Harbor-Lantern.txt), an original English sample with fixed-width line breaks, and press `⌘2` for a two-page spread.
+
+![The Harbor Lantern displayed in two-page view in Good Text Viewer](docs/screenshots/english-two-page.png)
+
+### Hard line breaks before and after cleanup
+
+With cleanup off, the original file puts a hard line break in the middle of the first sentence:
+
+```text
+The lantern at the end of the pier was still burning when Nora
+reached the harbor.
+```
+
+With cleanup on, it reads as one continuous sentence and wraps to fit the page:
+
+> The lantern at the end of the pier was still burning when Nora reached the harbor.
+
+The rest of the paragraph reflows the same way. Blank lines between paragraphs are preserved.
+
 ## Reading views
 
-Both views show the [sample text](Samples/느린-밤.txt) included in this repository.
+These screenshots show the [Korean sample](Samples/느린-밤.txt) in both reading modes.
 
 | Single-page view | Two-page view |
 | --- | --- |
