@@ -1,128 +1,62 @@
 # Good Text Viewer
 
-macOS용 경량 `.txt` 전용 뷰어입니다. AppKit만 사용하며 빠른 실행과 읽기에 집중합니다.
+**English** · [한국어](README.ko.md)
 
-- 정식 버전: **1.0.1**
-- 개발/배포: **Dev Dot.**
+Good Text Viewer is a lightweight native macOS reader for plain-text (`.txt`) files. It uses AppKit and offers single-page and two-page reading, adjustable typography, and optional line-wrap cleanup for older documents.
 
-## 요구 사항
+Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)
 
-- macOS 13 이상
-- Apple Silicon 및 Intel Mac
-- Xcode 16 이상 또는 호환되는 최신 Xcode Command Line Tools
-- 외부 패키지 없음
+## Install
 
-## Homebrew 설치
-
-macOS 13 이상에서 Apple 공증을 받은 앱을 설치합니다.
+The notarized app supports macOS 13 or later on Apple Silicon and Intel Macs.
 
 ```sh
 brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 ```
 
-설치 후 응용 프로그램 폴더에서 **Good Text Viewer**를 실행하세요. Homebrew가 tap 신뢰를 요청하면 `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer`를 실행한 뒤 설치를 다시 시도하세요.
+Open **Good Text Viewer** from Applications. If Homebrew requires trust, run `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer` and retry the installation.
 
-## 빌드 및 실행
+You can also download the macOS ZIP from [GitHub Releases](https://github.com/arden-deq/Good-Text-Viewer/releases/latest), unzip it, and move the app to Applications.
 
-프로젝트 루트에서 다음 명령을 실행합니다.
+## Reading views
+
+Both views show the [sample text](Samples/느린-밤.txt) included in this repository.
+
+| Single-page view | Two-page view |
+| --- | --- |
+| ![Sample document in single-page view](docs/screenshots/single-page.png) | ![Sample document in two-page view](docs/screenshots/two-page.png) |
+
+## Read a file
+
+1. Press `⌘O` or choose **파일 → 열기…** (File → Open). You can also drop a `.txt` file onto the window.
+2. Choose a single page or a two-page spread. Adjust the font size and letter spacing with the controls on the right.
+3. Turn pages with the keyboard or drag the progress bar at the bottom to jump to a position.
+
+The reader detects UTF-8 and supported legacy encodings, including CP949. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **보기 → 오래된 문서 줄바꿈 자동 정리** (View → Automatically clean up legacy line wraps) to keep the original line breaks.
+
+| Action | Shortcut |
+| --- | --- |
+| Open a text file | `⌘O` |
+| Single-page view | `⌘1` |
+| Two-page view | `⌘2` |
+| Increase / decrease font size | `⌘+` / `⌘-` |
+| Increase / decrease letter spacing | `⌥⌘]` / `⌥⌘[` |
+| Next page | Right Arrow, Page Down, or Space |
+| Previous page | Left Arrow, Page Up, or Shift-Space |
+
+## Build from source
+
+Use Xcode 16 or later to build the universal app. The project has no external package dependencies.
 
 ```sh
 make test
 make run
 ```
 
-`make run`은 릴리스 실행 파일을 빌드하고 `dist/Good Text Viewer.app` 앱 번들을 만든 뒤 실행합니다. 앱만 만들려면 `make package`, 릴리스 바이너리만 빌드하려면 `make build`를 사용하세요.
+`make run` builds and opens `dist/Good Text Viewer.app`. Use `make package` to build the app bundle without opening it, or `make build` to build just the executable.
 
-Finder에서 직접 실행할 때는 `dist/Good Text Viewer.app`을 더블 클릭하면 됩니다. 원하는 경우 이 앱을 `/Applications`로 복사할 수 있습니다.
+For Developer ID signing, notarization, and Cask publishing, see the [Homebrew release guide](Packaging/homebrew/README.md).
 
-## 사용법
+## License
 
-1. 앱을 실행합니다.
-2. `⌘O`를 누르거나 **파일 > 열기…**에서 `.txt` 파일을 선택합니다. `.txt` 파일을 앱 창으로 끌어 놓아도 열립니다.
-3. 한쪽 보기와 두쪽 보기를 바꾸고 글자 크기·자간을 읽기 편하게 조절합니다.
-4. 하단 진행도 선을 드래그해 원하는 위치로 이동할 수 있습니다.
-5. 방향키, Page Up/Page Down 또는 Space/Shift-Space로 페이지를 이동합니다.
-
-지원 파일은 확장자가 `.txt`인 일반 텍스트입니다. 문서가 UTF-8이 아니면 앱이 지원하는 대체 인코딩으로 자동 판별합니다.
-오래된 고정폭 문서의 인위적인 줄바꿈은 반복 패턴이 강할 때만 자동으로 정리합니다. 최근 문서의 줄바꿈을 원문 그대로 보고 싶다면 **보기 > 오래된 문서 줄바꿈 자동 정리**를 끄면 됩니다.
-
-Finder에서 파일을 열려면 `.txt` 파일을 보조 클릭한 뒤 **다음으로 열기 > Good Text Viewer**를 선택합니다. 앱을 `/Applications`로 복사해 두면 **다음으로 열기** 목록에서 찾기 쉽습니다.
-
-## 키보드 단축키
-
-| 기능 | 단축키 |
-| --- | --- |
-| 텍스트 파일 열기 | `⌘O` |
-| 한쪽 보기 | `⌘1` |
-| 두쪽 보기 | `⌘2` |
-| 글자 크게 | `⌘+` |
-| 글자 작게 | `⌘-` |
-| 자간 넓게 | `⌥⌘]` |
-| 자간 좁게 | `⌥⌘[` |
-| 다음 페이지 | `→`, `Page Down` 또는 `Space` |
-| 이전 페이지 | `←`, `Page Up` 또는 `Shift-Space` |
-
-## 패키징과 서명
-
-`Scripts/package.sh`는 SwiftPM 릴리스 바이너리를 표준 macOS 앱 번들 구조로 복사하고 로컬 실행용 ad-hoc 서명을 적용한 뒤 서명을 검증합니다. 생성 결과는 언제나 다음 위치입니다.
-
-```text
-dist/Good Text Viewer.app
-```
-
-이 서명은 현재 Mac에서 개발·실행하기 위한 것입니다. 다른 사용자에게 인터넷으로 배포하면 Gatekeeper가 앱을 차단할 수 있습니다. 공개 배포에는 **Developer ID Application** 인증서, hardened runtime 서명, Apple 공증(`notarytool`), staple 과정이 별도로 필요합니다.
-
-앱 정보 창에는 정식 버전 `1.0.1`, 개발/배포 사업자명 `Dev Dot.`, 저작권 정보와 앱 아이콘이 표시됩니다. 번들 식별자는 `com.devdot.goodtextviewer`입니다.
-
-## 일반 다운로드용 릴리스
-
-다음 명령은 universal 앱과 SHA-256 파일을 만듭니다.
-
-```sh
-make release
-```
-
-생성 결과:
-
-```text
-dist/Good-Text-Viewer-1.0.1-macOS-universal.zip
-dist/Good-Text-Viewer-1.0.1-macOS-universal.zip.sha256
-```
-
-기본 결과는 ad-hoc 서명된 로컬 검증본입니다. 공개 게시본은 Developer ID로 서명하고 Apple 공증을 마친 뒤 만들어야 합니다.
-
-## Homebrew Cask 배포
-
-공개 GitHub 릴리스에 위 ZIP을 업로드한 뒤 다음 명령으로 Cask를 생성합니다.
-
-```sh
-./Scripts/render-cask.sh <github-owner>/<app-repository>
-```
-
-결과는 `HomebrewTap/Casks/dev-dot-good-text-viewer.rb`입니다. 이 파일을 `<github-owner>/homebrew-tap` 저장소의 같은 경로에 게시하면 사용자는 다음 형식으로 설치할 수 있습니다.
-
-```sh
-brew install --cask <github-owner>/tap/dev-dot-good-text-viewer
-```
-
-Developer ID 인증서와 `notarytool` 키체인 프로필을 준비한 환경에서는 아래 공개 배포 명령이 서명, 공증, staple, Gatekeeper 검사, ZIP, SHA-256, Cask 생성을 순서대로 수행합니다.
-
-```sh
-GOOD_TEXT_VIEWER_SIGNING_IDENTITY="Developer ID Application: …" \
-GOOD_TEXT_VIEWER_NOTARY_PROFILE="notary-profile" \
-./Scripts/make-publish-release.sh <github-owner>/<app-repository>
-```
-
-Homebrew 작업 파일과 체크리스트는 `Packaging/homebrew`에 있습니다.
-
-## 라이선스
-
-Good Text Viewer는 [MIT 라이선스](LICENSE)로 배포합니다.
-
-## 정리
-
-```sh
-make clean
-```
-
-SwiftPM 빌드 산출물과 생성된 앱 번들을 삭제합니다.
+[MIT](LICENSE).
