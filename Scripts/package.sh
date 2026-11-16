@@ -66,6 +66,7 @@ install -m 0755 "${BUILT_EXECUTABLE}" "${MACOS_DIR}/${PRODUCT_NAME}"
 xcrun strip -S "${MACOS_DIR}/${PRODUCT_NAME}"
 install -m 0644 "${INFO_PLIST}" "${CONTENTS_DIR}/Info.plist"
 install -m 0644 "${APP_ICON}" "${RESOURCES_DIR}/AppIcon.icns"
+install -m 0644 "${PROJECT_ROOT}/LICENSE" "${RESOURCES_DIR}/LICENSE"
 
 plutil -lint "${CONTENTS_DIR}/Info.plist" >/dev/null
 

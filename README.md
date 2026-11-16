@@ -115,6 +115,10 @@ GOOD_TEXT_VIEWER_NOTARY_PROFILE="notary-profile" \
 
 Homebrew 작업 파일과 체크리스트는 `Packaging/homebrew`에 있습니다.
 
+## 라이선스
+
+Good Text Viewer는 [MIT 라이선스](LICENSE)로 배포합니다.
+
 ## 정리
 
 ```sh
