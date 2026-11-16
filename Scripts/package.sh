@@ -36,6 +36,8 @@ echo "Building ${PRODUCT_NAME} (release)..."
 "${SWIFT}" build \
   --package-path "${PROJECT_ROOT}" \
   --configuration release \
+  -Xswiftc -file-prefix-map \
+  -Xswiftc "${PROJECT_ROOT}=." \
   --arch arm64 \
   --arch x86_64
 readonly BIN_DIR="$("${SWIFT}" build \
@@ -60,6 +62,8 @@ fi
 rm -rf -- "${APP_BUNDLE}"
 mkdir -p -- "${MACOS_DIR}" "${RESOURCES_DIR}"
 install -m 0755 "${BUILT_EXECUTABLE}" "${MACOS_DIR}/${PRODUCT_NAME}"
+# Remove linker debug maps that contain absolute paths to build inputs.
+xcrun strip -S "${MACOS_DIR}/${PRODUCT_NAME}"
 install -m 0644 "${INFO_PLIST}" "${CONTENTS_DIR}/Info.plist"
 install -m 0644 "${APP_ICON}" "${RESOURCES_DIR}/AppIcon.icns"
 

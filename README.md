@@ -2,7 +2,7 @@
 
 macOS용 경량 `.txt` 전용 뷰어입니다. AppKit만 사용하며 빠른 실행과 읽기에 집중합니다.
 
-- 정식 버전: **1.0.0**
+- 정식 버전: **1.0.1**
 - 개발/배포: **Dev Dot.**
 
 ## 요구 사항
@@ -72,7 +72,7 @@ dist/Good Text Viewer.app
 
 이 서명은 현재 Mac에서 개발·실행하기 위한 것입니다. 다른 사용자에게 인터넷으로 배포하면 Gatekeeper가 앱을 차단할 수 있습니다. 공개 배포에는 **Developer ID Application** 인증서, hardened runtime 서명, Apple 공증(`notarytool`), staple 과정이 별도로 필요합니다.
 
-앱 정보 창에는 정식 버전 `1.0.0`, 개발/배포 사업자명 `Dev Dot.`, 저작권 정보와 앱 아이콘이 표시됩니다. 번들 식별자는 `com.devdot.goodtextviewer`입니다.
+앱 정보 창에는 정식 버전 `1.0.1`, 개발/배포 사업자명 `Dev Dot.`, 저작권 정보와 앱 아이콘이 표시됩니다. 번들 식별자는 `com.devdot.goodtextviewer`입니다.
 
 ## 일반 다운로드용 릴리스
 
@@ -85,8 +85,8 @@ make release
 생성 결과:
 
 ```text
-dist/Good-Text-Viewer-1.0.0-macOS-universal.zip
-dist/Good-Text-Viewer-1.0.0-macOS-universal.zip.sha256
+dist/Good-Text-Viewer-1.0.1-macOS-universal.zip
+dist/Good-Text-Viewer-1.0.1-macOS-universal.zip.sha256
 ```
 
 기본 결과는 ad-hoc 서명된 로컬 검증본입니다. 공개 게시본은 Developer ID로 서명하고 Apple 공증을 마친 뒤 만들어야 합니다.
