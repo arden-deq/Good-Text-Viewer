@@ -37,4 +37,5 @@ spctl --assess --type execute --verbose=4 "${APP_BUNDLE}"
 rm -f -- "${NOTARY_ARCHIVE}"
 
 "${PROJECT_ROOT}/Scripts/make-release.sh" --use-existing-app
+"${PROJECT_ROOT}/Scripts/make-dmg.sh" "${APP_BUNDLE}"
 "${PROJECT_ROOT}/Scripts/render-cask.sh" "${GITHUB_REPOSITORY}"

@@ -12,7 +12,7 @@ Public distribution requires a **Developer ID Application** identity and a confi
    ./Scripts/make-publish-release.sh <owner>/<app-repository>
    ```
 
-2. Upload the generated `Good-Text-Viewer-<version>-macOS-universal.zip` to the matching public GitHub release tagged `v<version>` without rebuilding it.
+2. Upload the generated `Good-Text-Viewer-<version>-macOS-universal.zip` to the matching public GitHub release tagged `v<version>` without rebuilding it. Also attach the separately notarized macOS DMG and its SHA-256 file for the website. Publishing the stable release triggers the Windows workflow to attach its portable EXE, ZIP, and checksum files.
 3. Copy the generated `dist/qt/Casks/dev-dot-good-text-viewer.rb` to `Casks/dev-dot-good-text-viewer.rb` in the public `<owner>/homebrew-tap` repository.
 4. Validate from the tap repository with `brew style --cask Casks/dev-dot-good-text-viewer.rb` and `brew audit --new --cask dev-dot-good-text-viewer`.
 

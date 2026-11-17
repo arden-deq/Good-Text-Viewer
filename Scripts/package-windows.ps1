@@ -1,4 +1,4 @@
-param([string]$BuildDir = ".build/qt-windows-native")
+param([string]$BuildDir = ".build/qt-windows-native", [switch]$PortableExe)
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")
 
@@ -23,6 +23,21 @@ try {
     $Hash = (Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash.ToLowerInvariant()
     "$Hash  $(Split-Path -Leaf $Archive)" | Set-Content -LiteralPath "$Archive.sha256" -Encoding ascii
     Write-Output "Created: $Archive"
+
+    if ($PortableExe) {
+        $Compiler = Join-Path ${env:ProgramFiles(x86)} "NSIS/makensis.exe"
+        if (-not (Test-Path -LiteralPath $Compiler -PathType Leaf)) {
+            $Compiler = (Get-Command makensis.exe -ErrorAction Stop).Source
+        }
+        $Portable = Join-Path (Get-Location) "dist/Good-Text-Viewer-$Version-Windows-x64.exe"
+        $Icon = Join-Path (Get-Location) "Assets/AppIcon.ico"
+        Invoke-Checked {
+            & $Compiler "/DSOURCE_DIR=$Stage" "/DOUTPUT_EXE=$Portable" "/DAPP_ICON=$Icon" "Packaging/windows/Portable.nsi"
+        }
+        $Hash = (Get-FileHash -LiteralPath $Portable -Algorithm SHA256).Hash.ToLowerInvariant()
+        "$Hash  $(Split-Path -Leaf $Portable)" | Set-Content -LiteralPath "$Portable.sha256" -Encoding ascii
+        Write-Output "Created: $Portable"
+    }
 } finally {
     if (Test-Path -LiteralPath $Stage) { Remove-Item -LiteralPath $Stage -Recurse -Force }
 }

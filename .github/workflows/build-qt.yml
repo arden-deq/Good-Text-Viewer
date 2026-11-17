@@ -71,7 +71,7 @@ jobs:
         run: |
           $env:CMAKE_PREFIX_PATH = "$env:RUNNER_TEMP/Qt/6.8.3/mingw_64"
           try {
-            ./Scripts/package-windows.ps1
+            ./Scripts/package-windows.ps1 -PortableExe
           } catch {
             $test = ".build/qt-windows-native/reader_tests.exe"
             if (Test-Path $test) {
@@ -88,6 +88,8 @@ jobs:
           path: |
             dist/*-Windows-x64.zip
             dist/*-Windows-x64.zip.sha256
+            dist/*-Windows-x64.exe
+            dist/*-Windows-x64.exe.sha256
 
   publish-windows:
     if: github.event_name == 'release' || inputs.release_tag
@@ -108,11 +110,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          archive="Good-Text-Viewer-${RELEASE_TAG#v}-Windows-x64.zip"
-          sha256sum --check "$archive.sha256"
+          package="Good-Text-Viewer-${RELEASE_TAG#v}-Windows-x64"
+          sha256sum --check "$package.zip.sha256" "$package.exe.sha256"
           existing=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
           files=()
-          for file in "$archive" "$archive.sha256"; do
+          for file in "$package.exe" "$package.exe.sha256" "$package.zip" "$package.zip.sha256"; do
             if ! grep -Fxq "$file" <<< "$existing"; then
               files+=("$file")
             fi

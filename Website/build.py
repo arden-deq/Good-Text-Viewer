@@ -2,6 +2,7 @@
 """Build the localized product pages from the app's public GitHub releases."""
 
 import argparse
+from dataclasses import dataclass
 from datetime import datetime
 from html import escape
 import json
@@ -17,9 +18,17 @@ SITE = "https://goodtextviewer.allmightdev.com"
 REPO = "arden-deq/Good-Text-Viewer"
 RELEASE_URL = f"https://github.com/{REPO}/releases"
 PLATFORMS = {
-    "macOS": ("macOS-universal", "mac_requirements"),
-    "Windows": ("Windows-x64", "windows_requirements"),
+    "macOS": ("macOS-universal", "mac_requirements", ("dmg", "zip")),
+    "Windows": ("Windows-x64", "windows_requirements", ("exe", "zip")),
 }
+
+@dataclass(frozen=True)
+class Build:
+    url: str
+    checksum: str
+    size: str
+    format: str
+
 
 EN = {
     "headline": "Read TXT like a book.",
@@ -31,7 +40,7 @@ EN = {
     "archive_title": "Release archive",
     "navigation": "Main navigation",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
-    "windows_requirements": "Windows x64 · Portable ZIP",
+    "windows_requirements": "Windows x64 · Runs without installation",
     "no_build": "No downloadable build has been published for this platform yet.",
     "no_release_build": "Source release. No installer or app archive was published for this version.",
     "notes": "Release notes",
@@ -70,7 +79,7 @@ KO = {
     "archive_title": "버전별 다운로드",
     "navigation": "주 메뉴",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
-    "windows_requirements": "Windows x64 · 무설치 ZIP",
+    "windows_requirements": "Windows x64 · 무설치",
     "no_build": "이 운영체제용 다운로드 파일은 아직 공개되지 않았습니다.",
     "no_release_build": "이 버전은 소스 코드만 공개되어 있습니다.",
     "notes": "릴리스 노트",
@@ -126,13 +135,16 @@ def catalog(raw_releases):
         release_url = f"{RELEASE_URL}/tag/{tag}"
         assets = {asset["name"]: asset for asset in release["assets"] if asset["state"] == "uploaded"}
         builds = {}
-        for platform, (suffix, _) in PLATFORMS.items():
-            filename = f"Good-Text-Viewer-{version}-{suffix}.zip"
-            asset = assets.get(filename)
-            if asset:
-                url = f"{RELEASE_URL}/download/{tag}/{filename}"
-                checksum = url + ".sha256" if filename + ".sha256" in assets else ""
-                builds[platform] = (url, checksum, f"{asset['size'] / (1024 ** 2):.1f} MiB")
+        for platform, (suffix, _, formats) in PLATFORMS.items():
+            for extension in formats:
+                filename = f"Good-Text-Viewer-{version}-{suffix}.{extension}"
+                asset = assets.get(filename)
+                if asset:
+                    url = f"{RELEASE_URL}/download/{tag}/{filename}"
+                    checksum = url + ".sha256" if filename + ".sha256" in assets else ""
+                    size = f"{asset['size'] / (1024 ** 2):.1f} MiB"
+                    builds[platform] = Build(url, checksum, size, extension.upper())
+                    break
 
         published = datetime.fromisoformat(release["published_at"].replace("Z", "+00:00")).date().isoformat()
         releases.append((version, published, release_url, builds))
@@ -143,21 +155,22 @@ def template(filename, **values):
     return Template((SOURCE / "templates" / filename).read_text(encoding="utf-8")).substitute(values)
 
 
-def download_button(url, platform, text, version=""):
+def download_button(build, platform, text, version=""):
     label = f"{platform} {text['download']}" if text is KO else f"{text['download']} for {platform}"
     if version:
         label += f" · {version}"
-    return f'<a class="button" href="{url}"><span aria-hidden="true">↓</span>{escape(label)}</a>'
+    label += f" · {build.format}"
+    return f'<a class="button" href="{build.url}"><span aria-hidden="true">↓</span>{escape(label)}</a>'
 
 
 def platform_cards(releases, text):
     cards = []
-    for platform, (_, requirements_key) in PLATFORMS.items():
+    for platform, (_, requirements_key, _) in PLATFORMS.items():
         newest = next(((version, builds[platform]) for version, _, _, builds in releases if platform in builds), None)
         if newest:
-            version, (url, _, size) = newest
+            version, build = newest
             requirements = text[requirements_key]
-            detail = f"<p>{escape(requirements)} · {size}</p>{download_button(url, platform, text, version)}"
+            detail = f"<p>{escape(requirements)} · {build.size}</p>{download_button(build, platform, text, version)}"
         else:
             detail = f"<p>{escape(text['no_build'])}</p>"
         cards.append(f'<article class="platform-card"><h2>{platform}</h2>{detail}</article>')
@@ -169,10 +182,10 @@ def archive_rows(releases, text):
     for version, published, notes, builds in releases:
         if builds:
             links = []
-            for platform, (url, checksum, size) in builds.items():
-                label = f"{platform} ZIP"
-                verify = f'<a href="{checksum}" aria-label="SHA-256 · {platform} {version}">SHA-256</a>' if checksum else ""
-                links.append(f'<li><a class="asset-download" href="{url}">{label}</a><span>{size}</span>{verify}</li>')
+            for platform, build in builds.items():
+                label = f"{platform} {build.format}"
+                verify = f'<a href="{build.checksum}" aria-label="SHA-256 · {platform} {version}">SHA-256</a>' if build.checksum else ""
+                links.append(f'<li><a class="asset-download" href="{build.url}">{label}</a><span>{build.size}</span>{verify}</li>')
             files = "<ul>" + "".join(links) + "</ul>"
         else:
             files = f"<p>{escape(text['no_release_build'])}</p>"
@@ -200,7 +213,7 @@ def write_site(destination, releases):
             body = template(
                 f"{page}.html",
                 **common,
-                primary_download=download_button(latest_mac[0], "macOS", text) if latest_mac else "",
+                primary_download=download_button(latest_mac, "macOS", text) if latest_mac else "",
                 downloads_url=downloads,
                 latest_platforms=platform_cards(releases, text) if archive else "",
                 release_rows=archive_rows(releases, text) if archive else "",
@@ -265,7 +278,7 @@ def main():
     args = parser.parse_args()
     releases = catalog(github_releases())
     if not releases or not any(row[3] for row in releases):
-        raise SystemExit("No public app archives found; keeping the current site.")
+        raise SystemExit("No public app packages found; keeping the current site.")
 
     if args.publish:
         publish(args.destination, releases)

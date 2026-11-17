@@ -9,7 +9,7 @@ python3 Website/build.py .build/website
 python3 -m http.server 8100 --directory .build/website
 ```
 
-Visit http://localhost:8100 and open Downloads to check the release archive. The builder needs access to the public GitHub API. It includes stable version tags and recognizes the macOS universal and Windows x64 release ZIPs from the app’s packaging scripts. Each platform gets its latest published build and the archive lists the files actually attached to each version.
+Visit http://localhost:8100 and open Downloads to check the release archive. The builder needs access to the public GitHub API. It includes stable version tags and prefers the macOS universal DMG and Windows x64 portable EXE, with ZIP links for older releases. Each platform gets its latest published build and the archive lists the files actually attached to each version.
 
 ## OCI
 
