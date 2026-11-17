@@ -55,7 +55,7 @@ These screenshots show the [Korean sample](Samples/느린-밤.txt) in both readi
 
 1. Press `⌘O` or choose **File → Open…**. You can also drop a `.txt` file onto the window.
 2. Choose a single page or a two-page spread. Adjust the font size and letter spacing with the controls on the right.
-3. Turn pages with the keyboard or drag the progress bar at the bottom to jump to a position.
+3. Turn pages with the keyboard or drag the progress bar to jump to a position. The counter shows `current / total`, counting pages in single-page view and spreads in two-page view.
 
 The reader detects UTF-8, UTF-16, and legacy Korean CP949 on both platforms. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **View → Clean up hard line breaks** to keep the original line breaks. On Windows, use Ctrl in place of ⌘ and Alt in place of ⌥ in the shortcuts below.
 

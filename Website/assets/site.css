@@ -34,19 +34,20 @@ nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-of
 .github-star {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 1px solid var(--line);
+  gap: 6px;
+  border: 1px solid #cbbc99;
   border-radius: 6px;
   padding: 4px 9px;
   white-space: nowrap;
   color: inherit;
   font: inherit;
-  background: transparent;
+  font-weight: 600;
+  background: #fbf8ef;
   cursor: pointer;
 }
-nav .github-star:hover { background: #efefef; text-decoration: none; }
-.github-star > [aria-hidden] { font-size: 1.1em; line-height: 1; }
-.star-count { border-inline-start: 1px solid var(--line); padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
+nav .github-star:hover { background: #f5eedc; border-color: #b09a65; text-decoration: none; }
+.star-icon { color: #946513; font-size: 1.1em; line-height: 1; }
+.star-count { border-inline-start: 1px solid #dfd3b9; padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .hero {
   display: grid;
   grid-template-columns: .86fr 1.14fr;
@@ -85,7 +86,7 @@ h1 { font-size: clamp(3.8rem, 6.8vw, 6.65rem); }
   overflow: hidden;
 }
 .preview { min-width: 0; margin: 0; padding: 0; border: 0; }
-.reader img { width: 100%; aspect-ratio: 800 / 550; object-fit: contain; }
+.reader img { width: 100%; }
 .double-image, #double:checked ~ .reader .single-image { display: none; }
 #double:checked ~ .reader .double-image { display: block; }
 .view-control { display: flex; justify-content: center; gap: 4px; margin: 13px auto 0; }

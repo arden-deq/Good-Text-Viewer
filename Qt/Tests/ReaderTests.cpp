@@ -18,6 +18,7 @@
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextBoundaryFinder>
+#include <QTextLayout>
 #include <QTranslator>
 #include <QtMath>
 
@@ -98,12 +99,24 @@ private slots:
     void bundledReadingFont()
     {
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
-        const auto font = QRawFont::fromFont(readingFont(18, 0));
-        QVERIFY(font.isValid());
-        QVERIFY(font.familyName().startsWith(u"Noto Serif KR"));
-        QCOMPARE(font.weight(), QFont::Medium);
-        QVERIFY(font.supportsCharacter(u'한'));
-        QVERIFY(font.supportsCharacter(u'A'));
+        const QRawFont bundled(u":/Assets/Fonts/NotoSerifKR-Medium.otf"_s, 18);
+        QVERIFY(bundled.isValid());
+        QCOMPARE(bundled.weight(), QFont::Medium);
+        QVERIFY(bundled.supportsCharacter(u'한'));
+        QVERIFY(bundled.supportsCharacter(u'A'));
+
+        const auto settings = readingFont(18, 0);
+        QTextLayout shaped(u"한A"_s, settings);
+        shaped.beginLayout();
+        auto line = shaped.createLine();
+        QVERIFY(line.isValid());
+        line.setLineWidth(100);
+        shaped.endLayout();
+        const auto runs = shaped.glyphRuns();
+        QVERIFY(!runs.isEmpty());
+        for (const auto &run : runs) {
+            QCOMPARE(run.rawFont().familyName(), bundled.familyName());
+        }
 #else
         QSKIP("The reading font is bundled on macOS and Windows.");
 #endif

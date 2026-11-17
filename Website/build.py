@@ -59,7 +59,7 @@ EN = {
     "large_title": "Large files, quick start",
     "large_body": "Begin reading when the first page is ready. The rest of the document is paginated in the background.",
     "type_title": "Type that suits you",
-    "type_body": "Choose a single page or a two-page spread. Adjust the font size and letter spacing for comfortable reading.",
+    "type_body": "Choose a single page or a two-page spread. Adjust the type, and see your current page or spread out of the total.",
     "wrap_title": "Clean up old line breaks",
     "wrap_body": "Let older fixed-width TXT paragraphs flow across the page. UTF-8, UTF-16, and legacy Korean CP949 are supported.",
     "spread_title": "Try the reading controls",
@@ -100,7 +100,7 @@ KO = {
     "large_title": "큰 파일도 빠르게",
     "large_body": "첫 페이지가 준비되면 바로 읽기 시작하세요. 나머지 페이지는 백그라운드에서 계산합니다.",
     "type_title": "읽기 편한 글자",
-    "type_body": "한 쪽과 두 쪽 보기를 고르고, 글자 크기와 자간을 눈에 편하게 조절하세요.",
+    "type_body": "한 쪽과 두 쪽 보기를 고르고 글자 크기와 자간을 조절하세요. 하단에서 전체 장수와 지금 읽는 위치를 확인할 수 있어요.",
     "wrap_title": "오래된 줄바꿈 정리",
     "wrap_body": "고정 폭으로 저장된 TXT 문단을 페이지 너비에 맞춰 읽을 수 있습니다. UTF-8, UTF-16, CP949를 지원합니다.",
     "spread_title": "읽기 설정 체험",
@@ -231,8 +231,8 @@ def archive_rows(releases, text):
 def write_site(destination, releases, stars, github_star=False):
     shutil.copytree(SOURCE / "assets", destination / "assets", dirs_exist_ok=True)
     asset_versions = {
-        extension: sha256((destination / "assets" / f"site.{extension}").read_bytes()).hexdigest()[:12]
-        for extension in ("css", "js")
+        name: sha256((destination / "assets" / name).read_bytes()).hexdigest()[:12]
+        for name in ("site.css", "site.js", "reader.webp", "spread.webp")
     }
     latest = {}
     for version, _, _, builds in releases:
@@ -245,11 +245,13 @@ def write_site(destination, releases, stars, github_star=False):
         home = f"{prefix}/"
         downloads = f"{prefix}/downloads/"
         common = {key: escape(value) for key, value in text.items()}
+        common["reader_image"] = f"/assets/reader.webp?v={asset_versions['reader.webp']}"
+        common["spread_image"] = f"/assets/spread.webp?v={asset_versions['spread.webp']}"
         count_value = "" if stars is None else f"{stars:,}"
         hidden_count = " hidden" if stars is None else ""
         count_label = common["star_count_label"]
         star_content = (
-            f'<span aria-hidden="true">☆</span> <span>{common["star_label"]}</span> '
+            f'<span class="star-icon" aria-hidden="true">★</span> <span>{common["star_label"]}</span> '
             f'<span class="star-count"{hidden_count}><span class="sr-only">{count_label} </span>'
             f'<span data-star-count>{count_value}</span></span>'
         )
@@ -290,8 +292,8 @@ def write_site(destination, releases, stars, github_star=False):
                 downloads_current=' aria-current="page"' if archive else "",
                 repo_url=REPO_URL,
                 star_button=star_button,
-                stylesheet_version=asset_versions["css"],
-                script_version=asset_versions["js"],
+                stylesheet_version=asset_versions["site.css"],
+                script_version=asset_versions["site.js"],
                 alternate_lang="ko" if lang == "en" else "en",
                 alternate_label="한국어" if lang == "en" else "English",
                 alternate_url=("/ko" if lang == "en" else "") + suffix,
