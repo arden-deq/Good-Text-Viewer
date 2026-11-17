@@ -2,9 +2,11 @@
 
 **English** · [한국어](README.ko.md)
 
-Read plain-text novels like a book. Good Text Viewer opens `.txt` files in single-page or two-page view, with adjustable type and optional cleanup for hard-wrapped lines in older files. Version 1.1.0 uses C++ and Qt for macOS and Windows.
+Read plain-text novels like a book. Good Text Viewer is a fast, lightweight TXT reader for macOS and Windows, with single-page and two-page views, adjustable type, and optional cleanup for hard-wrapped lines in older files.
 
 The app follows your system language for English and Korean. The side panel groups view mode, font size, and letter spacing.
+
+**Large TXT files.** Start reading as soon as the first page is ready while the rest of the pages are laid out in the background. The app accepts files under 2 GiB, subject to available memory. See the [large TXT benchmarks](docs/qt-performance.md) for the macOS test with a 100 MB text file.
 
 Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)
 
@@ -51,11 +53,11 @@ These screenshots show the [Korean sample](Samples/느린-밤.txt) in both readi
 
 ## Read a file
 
-1. Press `⌘O` or choose **파일 → 열기…** (File → Open). You can also drop a `.txt` file onto the window.
+1. Press `⌘O` or choose **File → Open…**. You can also drop a `.txt` file onto the window.
 2. Choose a single page or a two-page spread. Adjust the font size and letter spacing with the controls on the right.
 3. Turn pages with the keyboard or drag the progress bar at the bottom to jump to a position.
 
-The reader detects UTF-8, UTF-16, and legacy Korean CP949 on both platforms. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **보기 → 오래된 문서 줄바꿈 자동 정리** (View → Automatically clean up legacy line wraps) to keep the original line breaks. On Windows, use Ctrl in place of ⌘ and Alt in place of ⌥ in the shortcuts below.
+The reader detects UTF-8, UTF-16, and legacy Korean CP949 on both platforms. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **View → Clean up hard line breaks** to keep the original line breaks. On Windows, use Ctrl in place of ⌘ and Alt in place of ⌥ in the shortcuts below.
 
 | Action | Shortcut |
 | --- | --- |
@@ -85,8 +87,6 @@ On Windows x64, use the matching Qt and MinGW toolchain, Ninja, and CMake. With 
 ```
 
 This runs the tests and creates a portable ZIP in `dist`. Extract it before opening `GoodTextViewer.exe`.
-
-See the [large TXT benchmarks](docs/qt-performance.md) for results and reproduction instructions.
 
 For Developer ID signing, notarization, and Cask publishing, see the [Homebrew release guide](Packaging/homebrew/README.md).
 

@@ -2,9 +2,11 @@
 
 [English](README.md) · **한국어**
 
-책처럼 한쪽 또는 두쪽으로 읽는 경량 `.txt` 뷰어입니다. 1.1.0부터 C++와 Qt로 macOS와 Windows를 지원합니다.
+Good Text Viewer는 TXT 소설을 책처럼 읽을 수 있는 빠르고 가벼운 macOS·Windows 뷰어입니다. 한쪽·두쪽 보기, 글자 크기와 자간 조절, 오래된 문서의 줄바꿈 정리를 지원합니다.
 
 앱은 시스템 언어에 맞춰 한국어와 영어로 표시됩니다. 오른쪽 패널에서 보기 방식, 글자 크기, 자간을 조절할 수 있습니다.
+
+**대용량 TXT 지원.** 첫 페이지가 준비되면 바로 읽을 수 있고, 나머지 페이지는 백그라운드에서 계산합니다. 여유 메모리 범위에서 2GiB 미만 파일을 열 수 있습니다. macOS에서 100MB 파일을 연 결과는 [대용량 TXT 테스트](docs/qt-performance.md)에 기록했습니다.
 
 - macOS 공개판은 Homebrew 또는 GitHub 릴리스에서 받을 수 있습니다. Windows 시험판은 아래 방법으로 빌드할 수 있습니다.
 - 개발/배포: **Dev Dot.**
@@ -47,8 +49,6 @@ Windows x64에서는 Qt SDK와 버전이 맞는 MinGW 및 Ninja를 사용합니�
 ```
 
 테스트 통과 후 `dist`에 포터블 ZIP이 만들어집니다. 압축을 푼 폴더에서 `GoodTextViewer.exe`를 실행하세요.
-
-100MB 공개 텍스트를 포함한 macOS 측정 결과와 재현 방법은 [대용량 TXT 테스트](docs/qt-performance.md)에 있습니다.
 
 ## 사용법
 
