@@ -61,3 +61,61 @@ if (starCount && siteUrl.searchParams.get('github-star') === '1') {
     })
     .catch(() => {});
 }
+
+const starButton = document.querySelector('.github-star');
+const starPrompt = document.querySelector('[data-star-prompt]');
+if (starButton && starPrompt) {
+  const dismiss = starPrompt.querySelector('button');
+  let downloadButton;
+
+  const positionPrompt = () => {
+    if (starPrompt.hidden) return;
+    const star = starButton.getBoundingClientRect();
+    const width = starPrompt.offsetWidth;
+    const center = star.left + star.width / 2;
+    const left = Math.max(12, Math.min(center - width / 2, document.documentElement.clientWidth - width - 12));
+    starPrompt.style.left = `${left}px`;
+    starPrompt.style.top = `${star.bottom + 12}px`;
+    starPrompt.style.setProperty('--star-pointer', `${center - left}px`);
+  };
+
+  const showPrompt = () => {
+    if (starButton.getBoundingClientRect().top < 0) starButton.scrollIntoView({ block: 'nearest' });
+    starPrompt.hidden = false;
+    starButton.classList.add('star-prompt-target');
+    positionPrompt();
+  };
+
+  const hidePrompt = () => {
+    const restoreFocus = document.activeElement === dismiss;
+    starPrompt.hidden = true;
+    starButton.classList.remove('star-prompt-target');
+    if (restoreFocus) (downloadButton || starButton).focus({ preventScroll: true });
+  };
+
+  document.querySelectorAll('[data-star-download]').forEach((link) => {
+    if (link.dataset.starDownload === 'archive') {
+      const archive = new URL(link.href);
+      archive.searchParams.set('star-prompt', '1');
+      link.href = archive.href;
+      return;
+    }
+    link.addEventListener('click', () => {
+      downloadButton = link;
+      showPrompt();
+    });
+  });
+
+  if (siteUrl.searchParams.get('star-prompt') === '1') {
+    siteUrl.searchParams.delete('star-prompt');
+    history.replaceState(null, '', siteUrl);
+    showPrompt();
+  }
+
+  dismiss.addEventListener('click', hidePrompt);
+  document.addEventListener('keydown', ({ key }) => {
+    if (key === 'Escape' && !starPrompt.hidden) hidePrompt();
+  });
+  window.addEventListener('resize', positionPrompt);
+  window.addEventListener('scroll', positionPrompt, { passive: true });
+}

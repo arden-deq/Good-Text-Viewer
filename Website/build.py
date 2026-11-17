@@ -46,6 +46,8 @@ EN = {
     "star_label": "Star on GitHub",
     "star_text": "Star",
     "star_count_label": "Star count",
+    "star_prompt": "If Good Text Viewer is useful to you, give it a star on GitHub.",
+    "star_prompt_dismiss": "Dismiss star reminder",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
     "windows_requirements": "Windows x64 · Runs without installation",
     "no_build": "No downloadable build has been published for this platform yet.",
@@ -89,6 +91,8 @@ KO = {
     "star_label": "GitHub 스타",
     "star_text": "스타",
     "star_count_label": "스타 수",
+    "star_prompt": "Good Text Viewer를 써 보고 마음에 드시면 GitHub 스타로 응원해 주세요.",
+    "star_prompt_dismiss": "스타 안내 닫기",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
     "windows_requirements": "Windows x64 · 무설치",
     "no_build": "이 운영체제용 다운로드 파일은 아직 공개되지 않았습니다.",
@@ -177,12 +181,13 @@ def template(filename, **values):
     return Template((SOURCE / "templates" / filename).read_text(encoding="utf-8")).substitute(values)
 
 
-def download_button(build, platform, text, version=""):
+def download_button(build, platform, text, version="", *, home=False):
     label = f"{platform} {text['download']}" if text is KO else f"{text['download']} for {platform}"
     if version:
         label += f" · {version}"
     label += f" · {build.format}"
-    return f'<a class="button" href="{build.url}"><span aria-hidden="true">↓</span>{escape(label)}</a>'
+    prompt = ' data-star-download="file"' if home else ""
+    return f'<a class="button" href="{build.url}"{prompt}><span aria-hidden="true">↓</span>{escape(label)}</a>'
 
 
 def home_downloads(latest, text, downloads_url):
@@ -193,7 +198,7 @@ def home_downloads(latest, text, downloads_url):
         _, build = latest[platform]
         groups.append(
             f'<div data-platform-download="{platform}" hidden><div class="actions">'
-            f'{download_button(build, platform, text)}'
+            f'{download_button(build, platform, text, home=True)}'
             f'<a class="button ghost" href="{downloads_url}">{escape(text["all_versions"])}</a></div>'
             f'<p class="requirements">{escape(text[requirements_key])}</p></div>'
         )

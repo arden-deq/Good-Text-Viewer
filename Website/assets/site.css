@@ -48,6 +48,36 @@ nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-of
 nav .github-star:hover { background: #f5eedc; border-color: #b09a65; text-decoration: none; }
 .star-icon { color: #946513; font-size: 1.1em; line-height: 1; }
 .star-count { border-inline-start: 1px solid #dfd3b9; padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.github-star.star-prompt-target { outline: 2px solid #b99751; outline-offset: 3px; }
+.star-prompt {
+  position: fixed;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 8px;
+  width: min(270px, calc(100vw - 24px));
+  padding: 10px 9px 10px 12px;
+  border: 1px solid #cbbc99;
+  border-radius: 8px;
+  background: #fbf8ef;
+  box-shadow: 0 3px 12px #362a1b14;
+  font-size: .84rem;
+}
+.star-prompt[hidden] { display: none; }
+.star-prompt::before {
+  content: "";
+  position: absolute;
+  inset: -6px auto auto var(--star-pointer);
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  border: solid #cbbc99;
+  border-width: 1px 0 0 1px;
+  background: inherit;
+}
+.star-prompt button { width: 25px; height: 25px; border: 0; border-radius: 4px; background: transparent; color: var(--muted); font-size: 1.15rem; line-height: 1; cursor: pointer; }
+.star-prompt button:hover { background: #f5eedc; }
 .hero {
   display: grid;
   grid-template-columns: .86fr 1.14fr;
