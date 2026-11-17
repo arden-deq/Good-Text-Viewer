@@ -42,7 +42,9 @@ EN = {
     "all_versions": "All versions",
     "archive_title": "Release archive",
     "navigation": "Main navigation",
+    "repo_label": "Good Text Viewer repository on GitHub",
     "star_label": "Star on GitHub",
+    "star_text": "Star",
     "star_count_label": "Star count",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
     "windows_requirements": "Windows x64 · Runs without installation",
@@ -83,7 +85,9 @@ KO = {
     "all_versions": "모든 버전",
     "archive_title": "버전별 다운로드",
     "navigation": "주 메뉴",
+    "repo_label": "GitHub의 Good Text Viewer 저장소",
     "star_label": "GitHub 스타",
+    "star_text": "스타",
     "star_count_label": "스타 수",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
     "windows_requirements": "Windows x64 · 무설치",
@@ -251,7 +255,9 @@ def write_site(destination, releases, stars, github_star=False):
         hidden_count = " hidden" if stars is None else ""
         count_label = common["star_count_label"]
         star_content = (
-            f'<span class="star-icon" aria-hidden="true">★</span> <span>{common["star_label"]}</span> '
+            f'<span class="star-icon" aria-hidden="true">★</span> '
+            f'<span aria-hidden="true">{common["star_text"]}</span> '
+            f'<span class="sr-only">{common["star_label"]}</span> '
             f'<span class="star-count"{hidden_count}><span class="sr-only">{count_label} </span>'
             f'<span data-star-count>{count_value}</span></span>'
         )

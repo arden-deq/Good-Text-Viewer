@@ -165,7 +165,7 @@ code { overflow-wrap: anywhere; font-size: .82rem; }
 @media (max-width: 590px) {
   .bar, .content, .footer { width: calc(100% - 34px); }
   .bar { justify-content: flex-start; row-gap: 10px; }
-  nav { width: 100%; justify-content: space-between; gap: 10px; }
+  nav { width: 100%; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
   .hero { padding: 38px 0 40px; }
   .features, .spread, .install, .platforms { grid-template-columns: 1fr; }
   .features article, .features article + article { padding: 18px 0; border-left: 0; }
