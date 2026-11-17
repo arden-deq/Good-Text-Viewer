@@ -1,6 +1,6 @@
 cask "dev-dot-good-text-viewer" do
   version "1.2.1"
-  sha256 "b268520e9a28b3bc37dd570a8e773a1453ccd1b4c28d01d3e94cbb3eba57c896"
+  sha256 "c3f459c942426930e2f25c7004a2802cf29a386f041e176298c01bee3faeda96"
 
   url "https://github.com/arden-deq/Good-Text-Viewer/releases/download/v#{version}/Good-Text-Viewer-#{version}-macOS-universal.zip"
   name "Good Text Viewer"
