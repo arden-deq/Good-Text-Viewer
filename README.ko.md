@@ -8,7 +8,7 @@ Good Text Viewer는 TXT 소설을 책처럼 읽을 수 있는 빠르고 가벼�
 
 **대용량 TXT 지원.** 첫 페이지가 준비되면 바로 읽을 수 있고, 나머지 페이지는 백그라운드에서 계산합니다. 여유 메모리 범위에서 2GiB 미만 파일을 열 수 있습니다. macOS에서 100MB 파일을 연 결과는 [대용량 TXT 테스트](docs/qt-performance.md)에 기록했습니다.
 
-- macOS 공개판은 Homebrew 또는 GitHub 릴리스에서 받을 수 있습니다. Windows 시험판은 아래 방법으로 빌드할 수 있습니다.
+- [공식 홈페이지](https://goodtextviewer.allmightdev.com/ko/) · [버전별 다운로드](https://goodtextviewer.allmightdev.com/ko/downloads/)
 - 개발/배포: **Dev Dot.**
 
 ## Homebrew 설치
@@ -21,7 +21,7 @@ brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 
 설치 후 응용 프로그램 폴더에서 **Good Text Viewer**를 실행하세요. Homebrew가 tap 신뢰를 요청하면 `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer`를 실행한 뒤 설치를 다시 시도하세요.
 
-Homebrew를 사용하지 않는다면 [GitHub 릴리스](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)에서 macOS ZIP을 내려받아 압축을 풀고 앱을 응용 프로그램 폴더로 옮기세요. · [공식 홈페이지](https://goodtextviewer.allmightdev.com/ko/)
+[다운로드 페이지](https://goodtextviewer.allmightdev.com/ko/downloads/)에서 macOS DMG 또는 Windows x64 무설치 EXE를 받을 수 있습니다. macOS에서는 DMG를 열고 앱을 응용 프로그램 폴더로 옮기세요. Windows에서는 EXE를 바로 실행하세요.
 
 ## 읽기 화면
 

@@ -12,7 +12,7 @@ Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text
 
 ## Install
 
-The notarized macOS release supports macOS 13 or later on Apple Silicon and Intel Macs. For the Windows preview, see the build instructions below.
+The notarized macOS release supports macOS 13 or later on Apple Silicon and Intel Macs. The Windows x64 release provides a portable EXE.
 
 ```sh
 brew install --cask arden-deq/tap/dev-dot-good-text-viewer
@@ -20,7 +20,7 @@ brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 
 Open **Good Text Viewer** from Applications. If Homebrew requires trust, run `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer` and retry the installation.
 
-You can also download the macOS ZIP from [GitHub Releases](https://github.com/arden-deq/Good-Text-Viewer/releases/latest), unzip it, and move the app to Applications.
+Download the [macOS DMG or Windows EXE](https://goodtextviewer.allmightdev.com/downloads/). On macOS, open the DMG and drag the app into Applications. On Windows, run the EXE directly.
 
 ## Try an English short story
 
