@@ -53,7 +53,7 @@ QFont readingFont(int size, int spacingTenths)
     QFont font;
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
     static const auto bundledFamilies = [] {
-        const auto id = QFontDatabase::addApplicationFont(QStringLiteral(":/Assets/Fonts/NotoSerifKR-Medium.otf"));
+        const auto id = QFontDatabase::addApplicationFont(QStringLiteral(":/Assets/Fonts/NotoSerifKR-Medium.ttf"));
         return QFontDatabase::applicationFontFamilies(id);
     }();
     font.setWeight(QFont::Medium);

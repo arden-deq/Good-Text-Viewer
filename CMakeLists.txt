@@ -106,7 +106,7 @@ if(BUILD_TESTING)
 endif()
 if(APPLE OR WIN32)
     foreach(target IN LISTS reader_targets)
-        qt_add_resources(${target} reading_font PREFIX "/" FILES Assets/Fonts/NotoSerifKR-Medium.otf)
+        qt_add_resources(${target} reading_font PREFIX "/" FILES Assets/Fonts/NotoSerifKR-Medium.ttf)
     endforeach()
 endif()
 qt_add_translations(TARGETS ${reader_targets}

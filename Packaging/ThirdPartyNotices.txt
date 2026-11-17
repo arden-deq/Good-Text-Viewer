@@ -19,5 +19,7 @@ https://www.gnu.org/licenses/gcc-exception-3.1.html
 https://www.mingw-w64.org/
 
 The macOS and Windows bundles include Noto Serif KR Medium for the reading view.
-It is distributed under the SIL Open Font License 1.1 (see licenses/).
-https://github.com/notofonts/noto-cjk/tree/Serif2.003/Serif/SubsetOTF/KR
+It is the weight 500 static instance of the Noto Serif KR variable TrueType font,
+Copyright 2017–2024 Adobe, distributed under the SIL Open Font License 1.1
+(see licenses/).
+https://github.com/notofonts/noto-cjk/blob/Serif2.003/Serif/Variable/TTF/Subset/NotoSerifKR-VF.ttf

@@ -99,8 +99,12 @@ private slots:
     void bundledReadingFont()
     {
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
-        const QRawFont bundled(u":/Assets/Fonts/NotoSerifKR-Medium.otf"_s, 18);
-        QVERIFY(bundled.isValid());
+        QFile resource(u":/Assets/Fonts/NotoSerifKR-Medium.ttf"_s);
+        QVERIFY2(resource.open(QIODevice::ReadOnly), qPrintable(resource.errorString()));
+        const auto fontData = resource.readAll();
+        QVERIFY(!fontData.isEmpty());
+        const QRawFont bundled(fontData, 18);
+        QVERIFY2(bundled.isValid(), qPrintable(u"Qt could not load the bundled %1-byte TrueType font"_s.arg(fontData.size())));
         QVERIFY(bundled.supportsCharacter(u'한'));
         QVERIFY(bundled.supportsCharacter(u'A'));
 
