@@ -4,6 +4,7 @@
 import argparse
 from dataclasses import dataclass
 from datetime import datetime
+from hashlib import sha256
 from html import escape
 import json
 from pathlib import Path
@@ -229,6 +230,10 @@ def archive_rows(releases, text):
 
 def write_site(destination, releases, stars, github_star=False):
     shutil.copytree(SOURCE / "assets", destination / "assets", dirs_exist_ok=True)
+    asset_versions = {
+        extension: sha256((destination / "assets" / f"site.{extension}").read_bytes()).hexdigest()[:12]
+        for extension in ("css", "js")
+    }
     latest = {}
     for version, _, _, builds in releases:
         for platform, build in builds.items():
@@ -285,6 +290,8 @@ def write_site(destination, releases, stars, github_star=False):
                 downloads_current=' aria-current="page"' if archive else "",
                 repo_url=REPO_URL,
                 star_button=star_button,
+                stylesheet_version=asset_versions["css"],
+                script_version=asset_versions["js"],
                 alternate_lang="ko" if lang == "en" else "en",
                 alternate_label="한국어" if lang == "en" else "English",
                 alternate_url=("/ko" if lang == "en" else "") + suffix,
