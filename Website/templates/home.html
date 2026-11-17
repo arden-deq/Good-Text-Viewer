@@ -1,0 +1,52 @@
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>$headline</h1>
+        <p class="intro">$intro</p>
+        <div class="actions">
+          $primary_download
+          <a class="button ghost" href="$downloads_url">$all_versions</a>
+        </div>
+        <p class="requirements">$mac_requirements</p>
+      </div>
+      <fieldset class="preview">
+        <legend class="sr-only">$preview_label</legend>
+        <input class="sr-only" type="radio" name="view" id="single" checked>
+        <input class="sr-only" type="radio" name="view" id="double">
+        <figure class="reader">
+          <div class="window-top" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img class="single-image" src="/assets/reader.webp" width="800" height="550" alt="$reader_alt" fetchpriority="high">
+          <img class="double-image" src="/assets/spread.webp" width="1000" height="737" alt="$spread_alt">
+        </figure>
+        <div class="view-control">
+          <label for="single">$one_page</label>
+          <label for="double">$two_pages</label>
+        </div>
+      </fieldset>
+    </section>
+    <section class="features" aria-label="$features_label">
+      <article><span class="feature-icon" aria-hidden="true">↗</span><h2>$large_title</h2><p>$large_body</p></article>
+      <article><span class="feature-icon" aria-hidden="true">Aa</span><h2>$type_title</h2><p>$type_body</p></article>
+      <article><span class="feature-icon" aria-hidden="true">↵</span><h2>$wrap_title</h2><p>$wrap_body</p></article>
+    </section>
+    <section class="spread">
+      <div class="reading-demo">
+        <p id="demo-text">$demo_text</p>
+        <div class="demo-controls" hidden>
+          <label>$font_size <input type="range" min="17" max="28" value="21" data-demo-size aria-controls="demo-text"></label>
+          <label>$letter_spacing <input type="range" min="0" max="2" value="0" step="0.1" data-demo-spacing aria-controls="demo-text"></label>
+        </div>
+      </div>
+      <div>
+        <h2>$spread_title</h2>
+        <p>$spread_body</p>
+        <a class="text-link" href="https://github.com/arden-deq/Good-Text-Viewer/blob/main/Samples/The-Harbor-Lantern.txt">$sample_link <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+    <section class="install" id="homebrew">
+      <div><h2>$brew_title</h2><p>$brew_body</p></div>
+      <div class="terminal">
+        <code>brew install --cask arden-deq/tap/dev-dot-good-text-viewer</code>
+        <button type="button" hidden data-copy data-copied="$copied" data-copy-error="$copy_error">$copy</button>
+        <span class="sr-only" role="status"></span>
+      </div>
+    </section>

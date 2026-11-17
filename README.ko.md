@@ -21,7 +21,7 @@ brew install --cask arden-deq/tap/dev-dot-good-text-viewer
 
 설치 후 응용 프로그램 폴더에서 **Good Text Viewer**를 실행하세요. Homebrew가 tap 신뢰를 요청하면 `brew trust --cask arden-deq/tap/dev-dot-good-text-viewer`를 실행한 뒤 설치를 다시 시도하세요.
 
-Homebrew를 사용하지 않는다면 [GitHub 릴리스](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)에서 macOS ZIP을 내려받아 압축을 풀고 앱을 응용 프로그램 폴더로 옮기세요.
+Homebrew를 사용하지 않는다면 [GitHub 릴리스](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)에서 macOS ZIP을 내려받아 압축을 풀고 앱을 응용 프로그램 폴더로 옮기세요. · [공식 홈페이지](https://goodtextviewer.allmightdev.com/ko/)
 
 ## 읽기 화면
 

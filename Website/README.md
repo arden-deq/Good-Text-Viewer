@@ -1,0 +1,24 @@
+# Good Text Viewer website
+
+The site runs on the existing OCI Nginx server for [goodtextviewer.allmightdev.com](https://goodtextviewer.allmightdev.com). A Python 3 build renders English and Korean HTML from public GitHub Releases. Download links go directly to the assets on GitHub.
+
+## Local preview
+
+```sh
+python3 Website/build.py .build/website
+python3 -m http.server 8100 --directory .build/website
+```
+
+Visit http://localhost:8100 and open Downloads to check the release archive. The builder needs access to the public GitHub API. It includes stable version tags and recognizes the macOS universal and Windows x64 release ZIPs from the app’s packaging scripts. Each platform gets its latest published build and the archive lists the files actually attached to each version.
+
+## OCI
+
+Nginx serves `/var/www/goodtextviewer/site/current`. Keep the site's Python source, templates, and assets in `/opt/goodtextviewer-site`. Install the Nginx and systemd files from `deploy/`. Create the `site` directory owned by `www-data`, then run the following as that user after updating the source.
+
+```sh
+python3 /opt/goodtextviewer-site/build.py --publish /var/www/goodtextviewer/site
+```
+
+The `goodtextviewer-site.timer` systemd unit runs this command every 15 minutes. Each successful run switches the `current` symlink to a complete build and retains the previous build for rollback. If the release API or build fails, Nginx continues serving the current files. The timer uses the public API without credentials.
+
+The hostname has its own Nginx virtual host and Let's Encrypt certificate. Its HTTP server leaves `/.well-known/acme-challenge/` available for automatic renewals through the Cloudflare proxied DNS record.

@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Good Text Viewer downloads every 15 minutes
+
+[Timer]
+OnCalendar=*:0/15
+Persistent=yes
+
+[Install]
+WantedBy=timers.target

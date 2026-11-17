@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh the Good Text Viewer release catalog
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+ExecStart=/usr/bin/python3 /opt/goodtextviewer-site/build.py --publish /var/www/goodtextviewer/site
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/var/www/goodtextviewer/site
+TimeoutStartSec=90

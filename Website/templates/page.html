@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="$lang">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>$title</title>
+  <meta name="description" content="$description">
+  <meta property="og:title" content="$title">
+  <meta property="og:description" content="$description">
+  <meta property="og:image" content="https://goodtextviewer.allmightdev.com/assets/reader.webp">
+  <meta property="og:url" content="https://goodtextviewer.allmightdev.com$canonical">
+  <link rel="canonical" href="https://goodtextviewer.allmightdev.com$canonical">
+  <link rel="alternate" hreflang="en" href="$english_url">
+  <link rel="alternate" hreflang="ko" href="$korean_url">
+  <link rel="icon" href="/assets/icon.png">
+  <link rel="stylesheet" href="/assets/site.css">
+  <script src="/assets/site.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="$home_url"><img src="/assets/icon.png" width="36" height="36" alt=""><span>Good Text Viewer</span></a>
+    <nav aria-label="$navigation">
+      <a href="$downloads_url"$downloads_current>$downloads</a>
+      <a href="https://github.com/arden-deq/Good-Text-Viewer">GitHub</a>
+      <a class="language" href="$alternate_url" lang="$alternate_lang" hreflang="$alternate_lang">$alternate_label</a>
+    </nav>
+  </header>
+  <main class="content">
+$body
+  </main>
+  <footer class="footer">
+    <span>Good Text Viewer</span>
+    <a href="https://allmightdev.com/">DevDot</a>
+    <a href="https://github.com/arden-deq/Good-Text-Viewer/blob/main/LICENSE">MIT License</a>
+  </footer>
+</body>
+</html>
