@@ -47,8 +47,6 @@ nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-of
 nav .github-star:hover { background: #efefef; text-decoration: none; }
 .github-star > [aria-hidden] { font-size: 1.1em; line-height: 1; }
 .star-count { border-inline-start: 1px solid var(--line); padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.star-status { margin-top: 14px; color: var(--muted); font-size: .88rem; }
-.star-status:empty { display: none; }
 .hero {
   display: grid;
   grid-template-columns: .86fr 1.14fr;
@@ -156,7 +154,7 @@ code { overflow-wrap: anywhere; font-size: .82rem; }
 .release ul { padding: 0; margin: 0 0 6px; list-style: none; }
 .release li { display: flex; align-items: baseline; flex-wrap: wrap; gap: 7px 13px; }
 .release li + li { margin-top: 8px; }
-.release li span, .release .notes { color: var(--muted); font-size: .84rem; }
+.release .notes { color: var(--muted); font-size: .84rem; }
 .asset-download { font-weight: 630; color: var(--action); }
 @media (max-width: 850px) {
   .hero { grid-template-columns: 1fr; }

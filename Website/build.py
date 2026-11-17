@@ -29,7 +29,6 @@ PLATFORMS = {
 class Build:
     url: str
     checksum: str
-    size: str
     format: str
 
 
@@ -44,9 +43,6 @@ EN = {
     "navigation": "Main navigation",
     "star_label": "Star on GitHub",
     "star_count_label": "Star count",
-    "starred": "Star saved on GitHub.",
-    "star_cancelled": "GitHub authorization was cancelled.",
-    "star_failed": "Could not confirm your star. Try again or visit the GitHub repository.",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
     "windows_requirements": "Windows x64 · Runs without installation",
     "no_build": "No downloadable build has been published for this platform yet.",
@@ -88,9 +84,6 @@ KO = {
     "navigation": "주 메뉴",
     "star_label": "GitHub 스타",
     "star_count_label": "스타 수",
-    "starred": "GitHub에 스타를 등록했어요.",
-    "star_cancelled": "GitHub 권한 승인이 취소됐어요.",
-    "star_failed": "스타 등록을 확인하지 못했어요. 다시 시도하거나 GitHub 저장소에서 등록해 주세요.",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
     "windows_requirements": "Windows x64 · 무설치",
     "no_build": "이 운영체제용 다운로드 파일은 아직 공개되지 않았습니다.",
@@ -167,8 +160,7 @@ def catalog(raw_releases):
                 if asset:
                     url = f"{RELEASE_URL}/download/{tag}/{filename}"
                     checksum = url + ".sha256" if filename + ".sha256" in assets else ""
-                    size = f"{asset['size'] / (1024 ** 2):.1f} MiB"
-                    builds[platform] = Build(url, checksum, size, extension.upper())
+                    builds[platform] = Build(url, checksum, extension.upper())
                     break
 
         published = datetime.fromisoformat(release["published_at"].replace("Z", "+00:00")).date().isoformat()
@@ -188,14 +180,28 @@ def download_button(build, platform, text, version=""):
     return f'<a class="button" href="{build.url}"><span aria-hidden="true">↓</span>{escape(label)}</a>'
 
 
-def platform_cards(releases, text):
+def home_downloads(latest, text, downloads_url):
+    groups = []
+    for platform, (_, requirements_key, _) in PLATFORMS.items():
+        if platform not in latest:
+            continue
+        _, build = latest[platform]
+        groups.append(
+            f'<div data-platform-download="{platform}" hidden><div class="actions">'
+            f'{download_button(build, platform, text)}'
+            f'<a class="button ghost" href="{downloads_url}">{escape(text["all_versions"])}</a></div>'
+            f'<p class="requirements">{escape(text[requirements_key])}</p></div>'
+        )
+    return "\n".join(groups)
+
+
+def platform_cards(latest, text):
     cards = []
     for platform, (_, requirements_key, _) in PLATFORMS.items():
-        newest = next(((version, builds[platform]) for version, _, _, builds in releases if platform in builds), None)
-        if newest:
-            version, build = newest
+        if platform in latest:
+            version, build = latest[platform]
             requirements = text[requirements_key]
-            detail = f"<p>{escape(requirements)} · {build.size}</p>{download_button(build, platform, text, version)}"
+            detail = f"<p>{escape(requirements)}</p>{download_button(build, platform, text, version)}"
         else:
             detail = f"<p>{escape(text['no_build'])}</p>"
         cards.append(f'<article class="platform-card"><h2>{platform}</h2>{detail}</article>')
@@ -210,7 +216,7 @@ def archive_rows(releases, text):
             for platform, build in builds.items():
                 label = f"{platform} {build.format}"
                 verify = f'<a href="{build.checksum}" aria-label="SHA-256 · {platform} {version}">SHA-256</a>' if build.checksum else ""
-                links.append(f'<li><a class="asset-download" href="{build.url}">{label}</a><span>{build.size}</span>{verify}</li>')
+                links.append(f'<li><a class="asset-download" href="{build.url}">{label}</a>{verify}</li>')
             files = "<ul>" + "".join(links) + "</ul>"
         else:
             files = f"<p>{escape(text['no_release_build'])}</p>"
@@ -223,10 +229,14 @@ def archive_rows(releases, text):
 
 def write_site(destination, releases, stars, github_star=False):
     shutil.copytree(SOURCE / "assets", destination / "assets", dirs_exist_ok=True)
+    latest = {}
+    for version, _, _, builds in releases:
+        for platform, build in builds.items():
+            latest.setdefault(platform, (version, build))
+
     urls = []
     for lang, text in (("en", EN), ("ko", KO)):
         prefix = "/ko" if lang == "ko" else ""
-        latest_mac = next((builds["macOS"] for _, _, _, builds in releases if "macOS" in builds), None)
         home = f"{prefix}/"
         downloads = f"{prefix}/downloads/"
         common = {key: escape(value) for key, value in text.items()}
@@ -249,19 +259,14 @@ def write_site(destination, releases, stars, github_star=False):
                     f'<input type="hidden" name="page" value="{canonical}">'
                     f'<button class="github-star" type="submit">{star_content}</button></form>'
                 )
-                star_feedback = (
-                    f'<p class="star-status" role="status" data-star-status data-starred="{common["starred"]}" '
-                    f'data-cancelled="{common["star_cancelled"]}" data-failed="{common["star_failed"]}"></p>'
-                )
             else:
                 star_button = f'<a class="github-star" href="{REPO_URL}">{star_content}</a>'
-                star_feedback = ""
             body = template(
                 f"{page}.html",
                 **common,
-                primary_download=download_button(latest_mac, "macOS", text) if latest_mac else "",
+                platform_downloads=home_downloads(latest, text, downloads) if not archive else "",
                 downloads_url=downloads,
-                latest_platforms=platform_cards(releases, text) if archive else "",
+                latest_platforms=platform_cards(latest, text) if archive else "",
                 release_rows=archive_rows(releases, text) if archive else "",
             )
             output = destination / canonical.lstrip("/") / "index.html"
@@ -280,7 +285,6 @@ def write_site(destination, releases, stars, github_star=False):
                 downloads_current=' aria-current="page"' if archive else "",
                 repo_url=REPO_URL,
                 star_button=star_button,
-                star_feedback=star_feedback,
                 alternate_lang="ko" if lang == "en" else "en",
                 alternate_label="한국어" if lang == "en" else "English",
                 alternate_url=("/ko" if lang == "en" else "") + suffix,

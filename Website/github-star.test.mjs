@@ -63,7 +63,7 @@ test('stars the repository with the visitor token and returns the confirmed coun
 
   const result = browserCookie(callback, '__Host-gtv-star-result');
   const confirmation = await call('/star/result?page=/ko/downloads/', { headers: { Cookie: result } });
-  assert.deepEqual(await confirmation.json(), { status: 'starred', stars: 5 });
+  assert.deepEqual(await confirmation.json(), { stars: 5 });
   assert.match(confirmation.headers.get('set-cookie'), /Max-Age=0/);
   assert.equal((await call('/star/result?page=/ko/downloads/')).status, 404);
 });
@@ -75,13 +75,26 @@ test('rejects cross-origin requests, untrusted return pages and callbacks withou
   assert.equal((await begin(call, '//wrong.example')).status, 400);
   const start = await begin(call);
   const flow = browserCookie(start, '__Host-gtv-star-flow');
-  assert.equal((await call('/star/callback?state=wrong&code=test-code', { headers: { Cookie: flow } })).status, 400);
+  const invalid = await call('/star/callback?state=wrong&code=test-code', { headers: { Cookie: flow } });
+  assert.equal(invalid.headers.get('location'), '/ko/downloads/');
   const auth = new URL(start.headers.get('location'));
   const state = auth.searchParams.get('state');
-  assert.equal((await call(`/star/callback?state=${state}&code=test-code`)).status, 400);
+  const noCookie = await call(`/star/callback?state=${state}&code=test-code`);
+  assert.equal(noCookie.headers.get('location'), '/');
   const cancelled = await call(`/star/callback?state=${state}&error=access_denied`, { headers: { Cookie: flow } });
-  const result = browserCookie(cancelled, '__Host-gtv-star-result');
-  const confirmation = await call('/star/result?page=/ko/downloads/', { headers: { Cookie: result } });
-  assert.deepEqual(await confirmation.json(), { status: 'cancelled', stars: null });
+  assert.equal(cancelled.headers.get('location'), '/ko/downloads/');
+  assert.doesNotMatch(cancelled.headers.get('set-cookie'), /__Host-gtv-star-result/);
   assert.equal(githubCalls, 0);
+});
+
+test('returns to the same page without a result if GitHub rejects the star', async (t) => {
+  const call = await runServer(t, async (url) => url.endsWith('/access_token')
+    ? Response.json({ access_token: 'visitor-token' })
+    : new Response(null, { status: 403 }));
+  const start = await begin(call, '/');
+  const state = new URL(start.headers.get('location')).searchParams.get('state');
+  const flow = browserCookie(start, '__Host-gtv-star-flow');
+  const rejected = await call(`/star/callback?state=${state}&code=test-code`, { headers: { Cookie: flow } });
+  assert.equal(rejected.headers.get('location'), '/');
+  assert.doesNotMatch(rejected.headers.get('set-cookie'), /__Host-gtv-star-result/);
 });

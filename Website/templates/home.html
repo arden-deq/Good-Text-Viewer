@@ -2,11 +2,12 @@
       <div class="hero-copy">
         <h1>$headline</h1>
         <p class="intro">$intro</p>
-        <div class="actions">
-          $primary_download
-          <a class="button ghost" href="$downloads_url">$all_versions</a>
+        <div data-default-download>
+          <div class="actions">
+            <a class="button" href="$downloads_url"><span aria-hidden="true">↓</span>$downloads</a>
+          </div>
         </div>
-        <p class="requirements">$mac_requirements</p>
+        $platform_downloads
       </div>
       <fieldset class="preview">
         <legend class="sr-only">$preview_label</legend>

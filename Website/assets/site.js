@@ -20,6 +20,19 @@ document.querySelectorAll("[data-copy]").forEach((button) => {
   });
 });
 
+const defaultDownload = document.querySelector('[data-default-download]');
+if (defaultDownload) {
+  const platform = navigator.userAgentData?.platform || navigator.platform;
+  const windows = /^win/i.test(platform);
+  const mac = /^mac/i.test(platform) && (navigator.maxTouchPoints ?? 0) <= 1;
+  const preferred = windows ? 'Windows' : mac ? 'macOS' : '';
+  const downloads = document.querySelector(`[data-platform-download="${preferred}"]`);
+  if (downloads) {
+    defaultDownload.hidden = true;
+    downloads.hidden = false;
+  }
+}
+
 const demo = document.querySelector("#demo-text");
 const controls = document.querySelector(".demo-controls");
 if (demo && controls) {
@@ -32,24 +45,19 @@ if (demo && controls) {
   });
 }
 
-const starStatus = document.querySelector('[data-star-status]');
+const starCount = document.querySelector('[data-star-count]');
 const siteUrl = new URL(location.href);
-if (starStatus && siteUrl.searchParams.get('github-star') === '1') {
+if (starCount && siteUrl.searchParams.get('github-star') === '1') {
   siteUrl.searchParams.delete('github-star');
   history.replaceState(null, '', siteUrl);
   const query = new URLSearchParams({ page: siteUrl.pathname });
   fetch('/star/result?' + query)
-    .then((response) => {
-      if (!response.ok) throw new Error('Star result unavailable');
-      return response.json();
-    })
-    .then(({ status, stars }) => {
-      starStatus.textContent = starStatus.dataset[status] || starStatus.dataset.failed;
-      if (Number.isSafeInteger(stars)) {
-        const count = document.querySelector('[data-star-count]');
-        count.textContent = stars.toLocaleString(document.documentElement.lang);
-        count.parentElement.hidden = false;
+    .then((response) => response.ok ? response.json() : null)
+    .then((result) => {
+      if (Number.isSafeInteger(result?.stars)) {
+        starCount.textContent = result.stars.toLocaleString(document.documentElement.lang);
+        starCount.parentElement.hidden = false;
       }
     })
-    .catch(() => { starStatus.textContent = starStatus.dataset.failed; });
+    .catch(() => {});
 }

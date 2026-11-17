@@ -89,11 +89,10 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
   async function finish(req, res, query) {
     const flow = unseal(req, clientSecret, flowCookie);
     if (!flow || query.get('state') !== flow.state) {
-      res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' }).end('GitHub authorization expired or could not be verified. Return to Good Text Viewer and try again.');
+      redirect(res, flow?.page ?? '/');
       return;
     }
 
-    let status = query.get('error') === 'access_denied' ? 'cancelled' : 'failed';
     let stars = null;
     const code = query.get('code');
     if (code && !query.has('error')) {
@@ -125,8 +124,6 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
           method: 'PUT', headers: { ...headers, 'Content-Length': '0' }, body: '',
         });
         if (added.status !== 204) throw new Error(String(added.status));
-        status = 'starred';
-
         stage = 'count refresh';
         const repository = await github(`https://api.github.com/repos/${repo}`, { headers: { ...headers, 'Cache-Control': 'no-cache' } });
         if (repository.ok) {
@@ -139,10 +136,15 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
       }
     }
 
-    redirect(res, `${flow.page}?github-star=1`, [
-      cookie(flowCookie, '', 0),
-      seal(clientSecret, resultCookie, { page: flow.page, status, stars }, 120),
-    ]);
+    const clearFlow = cookie(flowCookie, '', 0);
+    if (stars === null) {
+      redirect(res, flow.page, [clearFlow]);
+    } else {
+      redirect(res, `${flow.page}?github-star=1`, [
+        clearFlow,
+        seal(clientSecret, resultCookie, { page: flow.page, stars }, 120),
+      ]);
+    }
   }
 
   const server = createServer(async (req, res) => {
@@ -160,7 +162,7 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
         res.writeHead(match ? 200 : 404, {
           'Content-Type': 'application/json; charset=utf-8',
           'Set-Cookie': cookie(resultCookie, '', 0),
-        }).end(JSON.stringify(match ? { status: result.status, stars: result.stars } : {}));
+        }).end(JSON.stringify(match ? { stars: result.stars } : {}));
       } else {
         res.writeHead(404).end();
       }
