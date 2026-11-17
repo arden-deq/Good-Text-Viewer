@@ -31,3 +31,25 @@ if (demo && controls) {
     demo.style.letterSpacing = event.target.value + "px";
   });
 }
+
+const starStatus = document.querySelector('[data-star-status]');
+const siteUrl = new URL(location.href);
+if (starStatus && siteUrl.searchParams.get('github-star') === '1') {
+  siteUrl.searchParams.delete('github-star');
+  history.replaceState(null, '', siteUrl);
+  const query = new URLSearchParams({ page: siteUrl.pathname });
+  fetch('/star/result?' + query)
+    .then((response) => {
+      if (!response.ok) throw new Error('Star result unavailable');
+      return response.json();
+    })
+    .then(({ status, stars }) => {
+      starStatus.textContent = starStatus.dataset[status] || starStatus.dataset.failed;
+      if (Number.isSafeInteger(stars)) {
+        const count = document.querySelector('[data-star-count]');
+        count.textContent = stars.toLocaleString(document.documentElement.lang);
+        count.parentElement.hidden = false;
+      }
+    })
+    .catch(() => { starStatus.textContent = starStatus.dataset.failed; });
+}

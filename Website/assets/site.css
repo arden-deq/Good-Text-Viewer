@@ -30,6 +30,7 @@ nav { display: flex; gap: 20px; align-items: center; font-size: .88rem; }
 nav a { text-decoration: none; }
 nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-offset: 4px; }
 .language { border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+.star-form { margin: 0; }
 .github-star {
   display: inline-flex;
   align-items: center;
@@ -38,10 +39,16 @@ nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-of
   border-radius: 6px;
   padding: 4px 9px;
   white-space: nowrap;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
 }
 nav .github-star:hover { background: #efefef; text-decoration: none; }
 .github-star > [aria-hidden] { font-size: 1.1em; line-height: 1; }
 .star-count { border-inline-start: 1px solid var(--line); padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.star-status { margin-top: 14px; color: var(--muted); font-size: .88rem; }
+.star-status:empty { display: none; }
 .hero {
   display: grid;
   grid-template-columns: .86fr 1.14fr;

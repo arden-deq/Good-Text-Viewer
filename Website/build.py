@@ -44,6 +44,9 @@ EN = {
     "navigation": "Main navigation",
     "star_label": "Star on GitHub",
     "star_count_label": "Star count",
+    "starred": "Star saved on GitHub.",
+    "star_cancelled": "GitHub authorization was cancelled.",
+    "star_failed": "Could not confirm your star. Try again or visit the GitHub repository.",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
     "windows_requirements": "Windows x64 · Runs without installation",
     "no_build": "No downloadable build has been published for this platform yet.",
@@ -85,6 +88,9 @@ KO = {
     "navigation": "주 메뉴",
     "star_label": "GitHub 스타",
     "star_count_label": "스타 수",
+    "starred": "GitHub에 스타를 등록했어요.",
+    "star_cancelled": "GitHub 권한 승인이 취소됐어요.",
+    "star_failed": "스타 등록을 확인하지 못했어요. 다시 시도하거나 GitHub 저장소에서 등록해 주세요.",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
     "windows_requirements": "Windows x64 · 무설치",
     "no_build": "이 운영체제용 다운로드 파일은 아직 공개되지 않았습니다.",
@@ -215,7 +221,7 @@ def archive_rows(releases, text):
     return "\n".join(rows)
 
 
-def write_site(destination, releases, stars):
+def write_site(destination, releases, stars, github_star=False):
     shutil.copytree(SOURCE / "assets", destination / "assets", dirs_exist_ok=True)
     urls = []
     for lang, text in (("en", EN), ("ko", KO)):
@@ -224,15 +230,32 @@ def write_site(destination, releases, stars):
         home = f"{prefix}/"
         downloads = f"{prefix}/downloads/"
         common = {key: escape(value) for key, value in text.items()}
-        star_count = ""
-        if stars is not None:
-            label = common["star_count_label"]
-            star_count = f'<span class="star-count"><span class="sr-only">{label} </span>{stars:,}</span>'
+        count_value = "" if stars is None else f"{stars:,}"
+        hidden_count = " hidden" if stars is None else ""
+        count_label = common["star_count_label"]
+        star_content = (
+            f'<span aria-hidden="true">☆</span> <span>{common["star_label"]}</span> '
+            f'<span class="star-count"{hidden_count}><span class="sr-only">{count_label} </span>'
+            f'<span data-star-count>{count_value}</span></span>'
+        )
         for page in ("home", "downloads"):
             archive = page == "downloads"
             suffix = "/downloads/" if archive else "/"
             canonical = prefix + suffix
             title = text["download_title"] if archive else f"Good Text Viewer · {text['headline']}"
+            if github_star:
+                star_button = (
+                    f'<form class="star-form" method="post" action="/star/start">'
+                    f'<input type="hidden" name="page" value="{canonical}">'
+                    f'<button class="github-star" type="submit">{star_content}</button></form>'
+                )
+                star_feedback = (
+                    f'<p class="star-status" role="status" data-star-status data-starred="{common["starred"]}" '
+                    f'data-cancelled="{common["star_cancelled"]}" data-failed="{common["star_failed"]}"></p>'
+                )
+            else:
+                star_button = f'<a class="github-star" href="{REPO_URL}">{star_content}</a>'
+                star_feedback = ""
             body = template(
                 f"{page}.html",
                 **common,
@@ -256,7 +279,8 @@ def write_site(destination, releases, stars):
                 downloads_url=downloads,
                 downloads_current=' aria-current="page"' if archive else "",
                 repo_url=REPO_URL,
-                star_count=star_count,
+                star_button=star_button,
+                star_feedback=star_feedback,
                 alternate_lang="ko" if lang == "en" else "en",
                 alternate_label="한국어" if lang == "en" else "English",
                 alternate_url=("/ko" if lang == "en" else "") + suffix,
@@ -272,14 +296,14 @@ def write_site(destination, releases, stars):
     )
 
 
-def publish(root, releases, stars):
+def publish(root, releases, stars, github_star=False):
     """Switch Nginx to a complete build, keeping the previous published build."""
     current = root / "current"
     previous = current.readlink() if current.is_symlink() else None
     build = Path(tempfile.mkdtemp(prefix="site-", dir=root))
     next_link = build.with_suffix(".link")
     try:
-        write_site(build, releases, stars)
+        write_site(build, releases, stars, github_star)
         build.chmod(0o755)
         next_link.symlink_to(build.name)
         next_link.replace(current)
@@ -300,6 +324,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("destination", type=Path)
     parser.add_argument("--publish", action="store_true", help="publish into an Nginx root with a current symlink")
+    parser.add_argument("--github-star", action="store_true", help="enable the GitHub App star form")
     args = parser.parse_args()
     releases = catalog(github_releases())
     if not releases or not any(row[3] for row in releases):
@@ -307,9 +332,9 @@ def main():
 
     stars = github_star_count()
     if args.publish:
-        publish(args.destination, releases, stars)
+        publish(args.destination, releases, stars, args.github_star)
     else:
-        write_site(args.destination, releases, stars)
+        write_site(args.destination, releases, stars, args.github_star)
 
 
 if __name__ == "__main__":

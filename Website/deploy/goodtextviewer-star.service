@@ -1,0 +1,18 @@
+[Unit]
+Description=Register Good Text Viewer stars through GitHub
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=yes
+EnvironmentFile=/etc/goodtextviewer/star.env
+ExecStart=/usr/bin/node /opt/goodtextviewer-site/github-star.mjs
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
