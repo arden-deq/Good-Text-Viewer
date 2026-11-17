@@ -1,12 +1,23 @@
 name: Build Qt viewer
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to build and backfill on Windows (optional)
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   macos:
+    if: github.event_name != 'release' && !inputs.release_tag
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
@@ -27,9 +38,21 @@ jobs:
             dist/*-macOS-universal.zip.sha256
 
   windows:
+    if: github.event_name != 'release' || !github.event.release.prerelease
     runs-on: windows-2022
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
+      - name: Validate the release tag
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -and $env:RELEASE_TAG -cnotmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "Expected a stable vMAJOR.MINOR.PATCH release tag"
+          }
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || github.ref }}
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -47,10 +70,54 @@ jobs:
         shell: pwsh
         run: |
           $env:CMAKE_PREFIX_PATH = "$env:RUNNER_TEMP/Qt/6.8.3/mingw_64"
-          ./Scripts/package-windows.ps1
+          try {
+            ./Scripts/package-windows.ps1
+          } catch {
+            $test = ".build/qt-windows-native/reader_tests.exe"
+            if (Test-Path $test) {
+              $env:QT_QPA_PLATFORM = "offscreen"
+              $env:QT_DEBUG_PLUGINS = "1"
+              $process = Start-Process -FilePath $test -ArgumentList "-o reader-diagnostic.txt,txt" -NoNewWindow -Wait -PassThru
+              Write-Output ("Test process exit code: 0x{0:X8}" -f $process.ExitCode)
+              if (Test-Path reader-diagnostic.txt) { Get-Content reader-diagnostic.txt }
+            }
+            throw
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: Windows-x64-portable
           path: |
             dist/*-Windows-x64.zip
             dist/*-Windows-x64.zip.sha256
+
+  publish-windows:
+    if: github.event_name == 'release' || inputs.release_tag
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency: windows-release-${{ github.event.release.tag_name || inputs.release_tag }}
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Windows-x64-portable
+      - name: Attach the tested Windows package to the matching release
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="Good-Text-Viewer-${RELEASE_TAG#v}-Windows-x64.zip"
+          sha256sum --check "$archive.sha256"
+          existing=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
+          files=()
+          for file in "$archive" "$archive.sha256"; do
+            if ! grep -Fxq "$file" <<< "$existing"; then
+              files+=("$file")
+            fi
+          done
+          if (( ${#files[@]} )); then
+            gh release upload "$RELEASE_TAG" "${files[@]}"
+          fi
