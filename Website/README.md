@@ -19,6 +19,6 @@ Nginx serves `/var/www/goodtextviewer/site/current`. Keep the site's Python sour
 python3 /opt/goodtextviewer-site/build.py --publish /var/www/goodtextviewer/site
 ```
 
-The `goodtextviewer-site.timer` systemd unit runs this command every 15 minutes. Each successful run switches the `current` symlink to a complete build and retains the previous build for rollback. If the release API or build fails, Nginx continues serving the current files. The timer uses the public API without credentials.
+The `goodtextviewer-site.timer` systemd unit runs this command every 15 minutes. Each successful run switches the `current` symlink to a complete build and retains the previous build for rollback. If the release API or build fails, Nginx continues serving the current files. The timer uses the public API without credentials. Each build also retrieves the repository’s star count. If that request fails, the GitHub link still appears without a count.
 
 The hostname has its own Nginx virtual host and Let's Encrypt certificate. Its HTTP server leaves `/.well-known/acme-challenge/` available for automatic renewals through the Cloudflare proxied DNS record.

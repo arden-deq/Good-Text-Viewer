@@ -30,6 +30,18 @@ nav { display: flex; gap: 20px; align-items: center; font-size: .88rem; }
 nav a { text-decoration: none; }
 nav a:hover, nav a[aria-current] { text-decoration: underline; text-underline-offset: 4px; }
 .language { border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; }
+.github-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+nav .github-star:hover { background: #efefef; text-decoration: none; }
+.github-star > [aria-hidden] { font-size: 1.1em; line-height: 1; }
+.star-count { border-inline-start: 1px solid var(--line); padding-inline-start: 6px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .hero {
   display: grid;
   grid-template-columns: .86fr 1.14fr;

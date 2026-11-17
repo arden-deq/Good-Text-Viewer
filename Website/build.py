@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the localized product pages from the app's public GitHub releases."""
+"""Build the localized product pages from the app's public GitHub data."""
 
 import argparse
 from dataclasses import dataclass
@@ -16,7 +16,10 @@ from urllib.request import Request, urlopen
 SOURCE = Path(__file__).resolve().parent
 SITE = "https://goodtextviewer.allmightdev.com"
 REPO = "arden-deq/Good-Text-Viewer"
-RELEASE_URL = f"https://github.com/{REPO}/releases"
+REPO_URL = f"https://github.com/{REPO}"
+REPO_API = f"https://api.github.com/repos/{REPO}"
+GITHUB_HEADERS = {"Accept": "application/vnd.github+json", "User-Agent": "GoodTextViewer-Site"}
+RELEASE_URL = f"{REPO_URL}/releases"
 PLATFORMS = {
     "macOS": ("macOS-universal", "mac_requirements", ("dmg", "zip")),
     "Windows": ("Windows-x64", "windows_requirements", ("exe", "zip")),
@@ -39,6 +42,8 @@ EN = {
     "all_versions": "All versions",
     "archive_title": "Release archive",
     "navigation": "Main navigation",
+    "star_label": "Star on GitHub",
+    "star_count_label": "Star count",
     "mac_requirements": "macOS 13+ · Apple Silicon and Intel · Apple-notarized",
     "windows_requirements": "Windows x64 · Runs without installation",
     "no_build": "No downloadable build has been published for this platform yet.",
@@ -78,6 +83,8 @@ KO = {
     "all_versions": "모든 버전",
     "archive_title": "버전별 다운로드",
     "navigation": "주 메뉴",
+    "star_label": "GitHub 스타",
+    "star_count_label": "스타 수",
     "mac_requirements": "macOS 13 이상 · Apple Silicon 및 Intel · Apple 공증",
     "windows_requirements": "Windows x64 · 무설치",
     "no_build": "이 운영체제용 다운로드 파일은 아직 공개되지 않았습니다.",
@@ -113,8 +120,8 @@ KO = {
 def github_releases():
     page = 1
     while True:
-        url = f"https://api.github.com/repos/{REPO}/releases?per_page=100&page={page}"
-        request = Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "GoodTextViewer-Site"})
+        url = f"{REPO_API}/releases?per_page=100&page={page}"
+        request = Request(url, headers=GITHUB_HEADERS)
         with urlopen(request, timeout=15) as response:
             releases = json.load(response)
             has_next = 'rel="next"' in response.headers.get("Link", "")
@@ -122,6 +129,18 @@ def github_releases():
         if not has_next:
             return
         page += 1
+
+
+def github_star_count():
+    request = Request(REPO_API, headers=GITHUB_HEADERS)
+    try:
+        with urlopen(request, timeout=5) as response:
+            repository = json.load(response)
+    except (OSError, ValueError):
+        return None
+
+    count = repository.get("stargazers_count") if isinstance(repository, dict) else None
+    return count if type(count) is int and count >= 0 else None
 
 
 def catalog(raw_releases):
@@ -196,7 +215,7 @@ def archive_rows(releases, text):
     return "\n".join(rows)
 
 
-def write_site(destination, releases):
+def write_site(destination, releases, stars):
     shutil.copytree(SOURCE / "assets", destination / "assets", dirs_exist_ok=True)
     urls = []
     for lang, text in (("en", EN), ("ko", KO)):
@@ -205,6 +224,10 @@ def write_site(destination, releases):
         home = f"{prefix}/"
         downloads = f"{prefix}/downloads/"
         common = {key: escape(value) for key, value in text.items()}
+        star_count = ""
+        if stars is not None:
+            label = common["star_count_label"]
+            star_count = f'<span class="star-count"><span class="sr-only">{label} </span>{stars:,}</span>'
         for page in ("home", "downloads"):
             archive = page == "downloads"
             suffix = "/downloads/" if archive else "/"
@@ -232,6 +255,8 @@ def write_site(destination, releases):
                 home_url=home,
                 downloads_url=downloads,
                 downloads_current=' aria-current="page"' if archive else "",
+                repo_url=REPO_URL,
+                star_count=star_count,
                 alternate_lang="ko" if lang == "en" else "en",
                 alternate_label="한국어" if lang == "en" else "English",
                 alternate_url=("/ko" if lang == "en" else "") + suffix,
@@ -247,14 +272,14 @@ def write_site(destination, releases):
     )
 
 
-def publish(root, releases):
+def publish(root, releases, stars):
     """Switch Nginx to a complete build, keeping the previous published build."""
     current = root / "current"
     previous = current.readlink() if current.is_symlink() else None
     build = Path(tempfile.mkdtemp(prefix="site-", dir=root))
     next_link = build.with_suffix(".link")
     try:
-        write_site(build, releases)
+        write_site(build, releases, stars)
         build.chmod(0o755)
         next_link.symlink_to(build.name)
         next_link.replace(current)
@@ -280,10 +305,11 @@ def main():
     if not releases or not any(row[3] for row in releases):
         raise SystemExit("No public app packages found; keeping the current site.")
 
+    stars = github_star_count()
     if args.publish:
-        publish(args.destination, releases)
+        publish(args.destination, releases, stars)
     else:
-        write_site(args.destination, releases)
+        write_site(args.destination, releases, stars)
 
 
 if __name__ == "__main__":
