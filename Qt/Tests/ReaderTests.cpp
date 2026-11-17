@@ -99,6 +99,7 @@ private slots:
     void bundledReadingFont()
     {
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+        const auto settings = readingFont(18, 0);
         QFile resource(u":/Assets/Fonts/NotoSerifKR-Medium.ttf"_s);
         QVERIFY2(resource.open(QIODevice::ReadOnly), qPrintable(resource.errorString()));
         const auto fontData = resource.readAll();
@@ -108,7 +109,6 @@ private slots:
         QVERIFY(bundled.supportsCharacter(u'한'));
         QVERIFY(bundled.supportsCharacter(u'A'));
 
-        const auto settings = readingFont(18, 0);
         QCOMPARE(settings.weight(), QFont::Medium);
         // Offscreen Qt can use a different font engine from the app.
         if (QGuiApplication::platformName() == u"offscreen") return;

@@ -3,12 +3,20 @@
 #include <QFontDatabase>
 #include <QFontMetricsF>
 #include <QPainter>
+#include <QResource>
 #include <QTextLayout>
 #include <QVarLengthArray>
 
 #include <algorithm>
 #include <cmath>
 #include <utility>
+
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+static void initReadingFontResource()
+{
+    Q_INIT_RESOURCE(reading_font);
+}
+#endif
 
 namespace reader {
 namespace {
@@ -53,6 +61,7 @@ QFont readingFont(int size, int spacingTenths)
     QFont font;
 #if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
     static const auto bundledFamilies = [] {
+        initReadingFontResource();
         const auto id = QFontDatabase::addApplicationFont(QStringLiteral(":/Assets/Fonts/NotoSerifKR-Medium.ttf"));
         return QFontDatabase::applicationFontFamilies(id);
     }();
