@@ -76,7 +76,6 @@ jobs:
             $test = ".build/qt-windows-native/reader_tests.exe"
             if (Test-Path $test) {
               $env:QT_QPA_PLATFORM = "offscreen"
-              $env:QT_DEBUG_PLUGINS = "1"
               $process = Start-Process -FilePath $test -ArgumentList "-o reader-diagnostic.txt,txt" -NoNewWindow -Wait -PassThru
               Write-Output ("Test process exit code: 0x{0:X8}" -f $process.ExitCode)
               if (Test-Path reader-diagnostic.txt) { Get-Content reader-diagnostic.txt }

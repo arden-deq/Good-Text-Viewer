@@ -7,6 +7,7 @@
 #include <QElapsedTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontMetricsF>
 #include <QLabel>
 #include <QMenuBar>
 #include <QPushButton>
@@ -16,6 +17,7 @@
 #include <QTest>
 #include <QTextBoundaryFinder>
 #include <QTranslator>
+#include <QtMath>
 
 #include <iterator>
 
@@ -85,7 +87,9 @@ private slots:
         const QString path = QString::fromUtf8(READER_SAMPLES) + u"/The-Harbor-Lantern.txt"_s;
         const auto raw = load(path, false), repaired = load(path);
         QVERIFY(raw.document && repaired.document);
-        QVERIFY(raw.document->text.contains(u"burning when Nora\nreached"));
+        auto originalLines = raw.document->text;
+        originalLines.replace(u"\r\n"_s, u"\n"_s);
+        QVERIFY(originalLines.contains(u"burning when Nora\nreached"));
         QVERIFY(repaired.document->text.contains(u"burning when Nora reached"));
     }
 
@@ -121,12 +125,20 @@ private slots:
         QVERIFY(pages.front().lines.size() > 1);
         QCOMPARE(pages.front().lines.front().x, 0.0);
         QVERIFY(pages.front().lines[1].x > 20);
-        const auto plain = u"옵션 : 여성 NPC에 대한 호감 30 상승."_s + QString(50, u' ') + u'』';
-        const auto box = collect(plain, {385, 350});
+        const auto prefix = u"옵션 : 여성 NPC에 대한 호감 30 상승."_s;
+        const auto padding = QString(50, u' ');
+        const auto plain = prefix + padding + u'』';
+        const QFontMetricsF metrics(readingFont(18, 0));
+        // Give the prefix and closer room, while forcing the spaces to compress
+        // regardless of the selected platform's font metrics.
+        const auto boxWidth = qCeil(metrics.horizontalAdvance(prefix) +
+                                    metrics.horizontalAdvance(u'』') +
+                                    metrics.horizontalAdvance(padding) / 2);
+        const auto box = collect(plain, {boxWidth, 350});
         QCOMPARE(box.front().lines.size(), 1u);
         QCOMPARE(box.front().lines.front().paddedCloser, plain.size() - 1);
         QCOMPARE(box.front().lines.front().length, plain.size());
-        QVERIFY(box.front().lines.front().closerX > 350);
+        QVERIFY(box.front().lines.front().closerX > metrics.horizontalAdvance(prefix));
         const auto more = collect(text, {145, 350}, 20);
         const auto less = collect(text, {145, 350}, -5);
         QVERIFY(more.front().lines.front().length <= less.front().lines.front().length);
@@ -212,7 +224,17 @@ private slots:
         restored.restoreLastFile();
         QTRY_VERIFY_WITH_TIMEOUT(!finished.isEmpty(), 10000);
         QVERIFY(!restoredPage.isEmpty());
-        QCOMPARE(restoredPage.last().first().toLongLong(), stored);
+        // Window managers can restore a different content size. The reopened
+        // spread should still contain the saved position after repagination.
+        QVERIFY(restoredPage.last().first().toLongLong() <= stored);
+        const auto buttons = restored.findChildren<QPushButton *>();
+        const auto next = std::find_if(buttons.begin(), buttons.end(), [](auto *button) {
+            return button->accessibleName() == u"Next page";
+        });
+        QVERIFY(next != buttons.end());
+        QVERIFY((*next)->isEnabled());
+        (*next)->click();
+        QVERIFY(restoredPage.last().first().toLongLong() > stored);
     }
 
     void koreanInterfaceAndLoadError()
