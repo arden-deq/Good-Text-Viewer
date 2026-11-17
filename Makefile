@@ -1,29 +1,30 @@
 SHELL := /bin/bash
 
-SWIFT := xcrun swift
-APP_BUNDLE := $(CURDIR)/dist/Good Text Viewer.app
+CMAKE_BIN ?= cmake
+CTEST_BIN ?= ctest
+BUILD_DIR := $(CURDIR)/.build/qt-local
+APP_BUNDLE := $(CURDIR)/dist/qt/Good Text Viewer.app
 
 .PHONY: build test icon package release run clean
 
 build:
-	$(SWIFT) build --configuration release
+	$(CMAKE_BIN) -S . -B "$(BUILD_DIR)" -DCMAKE_BUILD_TYPE=Release
+	$(CMAKE_BIN) --build "$(BUILD_DIR)" --config Release --parallel
 
-test:
-	$(SWIFT) test --parallel
+test: build
+	$(CTEST_BIN) --test-dir "$(BUILD_DIR)" --build-config Release --output-on-failure
 
 icon:
 	./Scripts/build-icon.sh
 
 package:
-	./Scripts/package.sh
+	CMAKE_BIN="$(CMAKE_BIN)" bash ./Scripts/package.sh
 
 release:
-	./Scripts/make-release.sh
+	CMAKE_BIN="$(CMAKE_BIN)" bash ./Scripts/make-release.sh
 
 run: package
 	open -n "$(APP_BUNDLE)"
 
 clean:
-	$(SWIFT) package clean
-	rm -rf -- "$(APP_BUNDLE)"
-	-rmdir "$(CURDIR)/dist" 2>/dev/null
+	$(CMAKE_BIN) --build "$(BUILD_DIR)" --target clean

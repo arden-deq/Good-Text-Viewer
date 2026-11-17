@@ -14,7 +14,7 @@ readonly INFO_PLIST="${PROJECT_ROOT}/Packaging/Info.plist"
 readonly VERSION="$(plutil -extract CFBundleShortVersionString raw "${INFO_PLIST}")"
 readonly RELEASE_ARCHIVE="${PROJECT_ROOT}/dist/Good-Text-Viewer-${VERSION}-macOS-universal.zip"
 readonly TEMPLATE="${PROJECT_ROOT}/Packaging/homebrew/Casks/dev-dot-good-text-viewer.rb.template"
-readonly OUTPUT_DIR="${PROJECT_ROOT}/HomebrewTap/Casks"
+readonly OUTPUT_DIR="${PROJECT_ROOT}/dist/qt/Casks"
 readonly OUTPUT="${OUTPUT_DIR}/dev-dot-good-text-viewer.rb"
 
 if [[ ! -f "${RELEASE_ARCHIVE}" ]]; then

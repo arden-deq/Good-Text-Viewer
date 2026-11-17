@@ -12,8 +12,8 @@ Public distribution requires a **Developer ID Application** identity and a confi
    ./Scripts/make-publish-release.sh <owner>/<app-repository>
    ```
 
-2. Upload the generated `Good-Text-Viewer-1.0.1-macOS-universal.zip` to a public GitHub release tagged `v1.0.1` without rebuilding it.
-3. Copy the generated `HomebrewTap/Casks/dev-dot-good-text-viewer.rb` into the same path in the public `<owner>/homebrew-tap` repository.
+2. Upload the generated `Good-Text-Viewer-<version>-macOS-universal.zip` to the matching public GitHub release tagged `v<version>` without rebuilding it.
+3. Copy the generated `dist/qt/Casks/dev-dot-good-text-viewer.rb` to `Casks/dev-dot-good-text-viewer.rb` in the public `<owner>/homebrew-tap` repository.
 4. Validate from the tap repository with `brew style --cask Casks/dev-dot-good-text-viewer.rb` and `brew audit --new --cask dev-dot-good-text-viewer`.
 
 For local verification only, `make release` creates an ad-hoc signed preview ZIP and `./Scripts/render-cask.sh <owner>/<app-repository>` renders a staging Cask. Neither is public-ready until the GitHub release exists and Gatekeeper accepts the app.

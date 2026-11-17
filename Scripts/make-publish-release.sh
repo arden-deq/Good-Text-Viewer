@@ -20,11 +20,11 @@ fi
 readonly GITHUB_REPOSITORY="$1"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 readonly PROJECT_ROOT="$(cd -- "${SCRIPT_DIR}/.." >/dev/null 2>&1 && pwd)"
-readonly APP_BUNDLE="${PROJECT_ROOT}/dist/Good Text Viewer.app"
-readonly NOTARY_ARCHIVE="${PROJECT_ROOT}/dist/Good-Text-Viewer-notarization.zip"
+readonly APP_BUNDLE="${PROJECT_ROOT}/dist/qt/Good Text Viewer.app"
+readonly NOTARY_ARCHIVE="${PROJECT_ROOT}/dist/qt/Good-Text-Viewer-notarization.zip"
 
 GOOD_TEXT_VIEWER_SIGNING_IDENTITY="${GOOD_TEXT_VIEWER_SIGNING_IDENTITY}" \
-  "${PROJECT_ROOT}/Scripts/package.sh"
+  bash "${PROJECT_ROOT}/Scripts/package.sh"
 
 rm -f -- "${NOTARY_ARCHIVE}"
 ditto -c -k --keepParent "${APP_BUNDLE}" "${NOTARY_ARCHIVE}"

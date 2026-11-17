@@ -2,13 +2,13 @@
 
 **English** · [한국어](README.ko.md)
 
-Read plain-text novels like a book on your Mac. Good Text Viewer opens `.txt` files in single-page or two-page view, with adjustable type and optional cleanup for hard-wrapped lines in older files.
+Read plain-text novels like a book. Good Text Viewer opens `.txt` files in single-page or two-page view, with adjustable type and optional cleanup for hard-wrapped lines in older files. Version 1.1.0 uses C++ and Qt for macOS and Windows.
 
 Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)
 
 ## Install
 
-The notarized app supports macOS 13 or later on Apple Silicon and Intel Macs.
+The notarized macOS release supports macOS 13 or later on Apple Silicon and Intel Macs. For the Windows preview, see the build instructions below.
 
 ```sh
 brew install --cask arden-deq/tap/dev-dot-good-text-viewer
@@ -53,7 +53,7 @@ These screenshots show the [Korean sample](Samples/느린-밤.txt) in both readi
 2. Choose a single page or a two-page spread. Adjust the font size and letter spacing with the controls on the right.
 3. Turn pages with the keyboard or drag the progress bar at the bottom to jump to a position.
 
-The reader detects UTF-8 and supported legacy encodings, including CP949. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **보기 → 오래된 문서 줄바꿈 자동 정리** (View → Automatically clean up legacy line wraps) to keep the original line breaks.
+The reader detects UTF-8, UTF-16, and legacy Korean CP949 on both platforms. For older fixed-width documents, it can join hard-wrapped lines when it detects a strong pattern. Turn off **보기 → 오래된 문서 줄바꿈 자동 정리** (View → Automatically clean up legacy line wraps) to keep the original line breaks. On Windows, use Ctrl in place of ⌘ and Alt in place of ⌥ in the shortcuts below.
 
 | Action | Shortcut |
 | --- | --- |
@@ -67,14 +67,24 @@ The reader detects UTF-8 and supported legacy encodings, including CP949. For ol
 
 ## Build from source
 
-Use Xcode 16 or later to build the universal app. The project has no external package dependencies.
+Install CMake 3.24+, a C++20 toolchain, and the Qt 6.8 Widgets SDK. On macOS, use Xcode 16 or later and a universal Qt SDK; set `CMAKE_PREFIX_PATH` to its Qt installation directory.
 
 ```sh
 make test
 make run
 ```
 
-`make run` builds and opens `dist/Good Text Viewer.app`. Use `make package` to build the app bundle without opening it, or `make build` to build just the executable.
+`make run` builds and opens `dist/qt/Good Text Viewer.app`. Use `make package` for the app bundle without opening it or `make release` for the universal ZIP and checksum.
+
+On Windows x64, use the matching Qt and MinGW toolchain, Ninja, and CMake. With the Qt SDK's `bin` and matching MinGW `bin` directories on PATH and `CMAKE_PREFIX_PATH` set to the SDK directory, run:
+
+```powershell
+./Scripts/package-windows.ps1
+```
+
+This runs the tests and creates a portable ZIP in `dist`. Extract it before opening `GoodTextViewer.exe`.
+
+See the [large TXT benchmarks](docs/qt-performance.md) for results and reproduction instructions.
 
 For Developer ID signing, notarization, and Cask publishing, see the [Homebrew release guide](Packaging/homebrew/README.md).
 
