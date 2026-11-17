@@ -3,6 +3,8 @@
 #include <QApplication>
 #include <QFileOpenEvent>
 #include <QIcon>
+#include <QLocale>
+#include <QTranslator>
 
 #ifdef Q_OS_WIN
 #include <qt_windows.h>
@@ -42,6 +44,15 @@ static int runApplication(int argc, char **argv)
     app.setApplicationVersion(QString::fromLatin1(READER_VERSION));
     app.setWindowIcon(QIcon(u":/Assets/AppIcon-1024-final.png"_s));
     app.setLayoutDirection(Qt::LeftToRight);
+    QTranslator korean;
+    for (const auto &language : QLocale::system().uiLanguages()) {
+        const auto locale = QLocale(language).language();
+        if (locale == QLocale::English) break;
+        if (locale == QLocale::Korean && korean.load(u":/i18n/GoodTextViewer_ko.qm"_s)) {
+            app.installTranslator(&korean);
+            break;
+        }
+    }
     reader::ReaderWindow window(qEnvironmentVariable("GTV_SETTINGS_FILE"));
     app.window = &window;
     window.show();

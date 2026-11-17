@@ -3,8 +3,8 @@
 
 1 ICON "AppIcon.ico"
 1 VERSIONINFO
- FILEVERSION 1,1,0,0
- PRODUCTVERSION 1,1,0,0
+ FILEVERSION 1,1,1,0
+ PRODUCTVERSION 1,1,1,0
  FILEOS VOS_NT_WINDOWS32
  FILETYPE VFT_APP
  BEGIN
@@ -14,10 +14,10 @@
    BEGIN
     VALUE "CompanyName", "Dev Dot.\0"
     VALUE "FileDescription", "Good Text Viewer\0"
-    VALUE "FileVersion", "1.1.0\0"
+    VALUE "FileVersion", "1.1.1\0"
     VALUE "OriginalFilename", "GoodTextViewer.exe\0"
     VALUE "ProductName", "Good Text Viewer\0"
-    VALUE "ProductVersion", "1.1.0\0"
+    VALUE "ProductVersion", "1.1.1\0"
    END
   END
   BLOCK "VarFileInfo"

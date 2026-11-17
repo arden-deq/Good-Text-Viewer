@@ -8,12 +8,14 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QLabel>
+#include <QMenuBar>
 #include <QPushButton>
 #include <QSignalSpy>
 #include <QSlider>
 #include <QTemporaryDir>
 #include <QTest>
 #include <QTextBoundaryFinder>
+#include <QTranslator>
 
 #include <iterator>
 
@@ -192,7 +194,7 @@ private slots:
                 const auto button = std::find_if(controls.begin(), controls.end(), [&name](auto *b) { return b->accessibleName() == name; });
                 return button == controls.end() ? nullptr : *button;
             };
-            for (const auto &name : {u"두쪽 보기"_s, u"글자 늘리기"_s, u"자간 늘리기"_s}) {
+            for (const auto &name : {u"Two-page view"_s, u"Increase font size"_s, u"Increase letter spacing"_s}) {
                 auto *b = byName(name);
                 QVERIFY(b);
                 b->click();
@@ -211,6 +213,26 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(!finished.isEmpty(), 10000);
         QVERIFY(!restoredPage.isEmpty());
         QCOMPARE(restoredPage.last().first().toLongLong(), stored);
+    }
+
+    void koreanInterfaceAndLoadError()
+    {
+        QTranslator translator;
+        QVERIFY(translator.load(u":/i18n/GoodTextViewer_ko.qm"_s));
+        QVERIFY(QCoreApplication::installTranslator(&translator));
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        ReaderWindow window(dir.filePath(u"settings.ini"_s));
+        const auto menus = window.menuBar()->actions();
+        QVERIFY(std::any_of(menus.begin(), menus.end(), [](const auto *action) { return action->text() == u"보기"; }));
+        const auto buttons = window.findChildren<QPushButton *>();
+        QVERIFY(std::any_of(buttons.begin(), buttons.end(), [](const auto *button) {
+            return button->accessibleName() == u"글자 크기 늘리기" && button->property("typeAdjustment").toBool();
+        }));
+        QSignalSpy failed(&window, &ReaderWindow::loadFailed);
+        window.open(dir.filePath(u"example.pdf"_s));
+        QTRY_COMPARE(failed.size(), 1);
+        QCOMPARE(failed.first().first().toString(), u"TXT 파일만 열 수 있습니다."_s);
     }
 
     void externalCorpus()

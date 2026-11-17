@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPushButton>
 #include <QShortcut>
 #include <QSignalBlocker>
@@ -64,6 +65,50 @@ QIcon bookIcon(bool spread)
         p.end();
         icon.addPixmap(pix, QIcon::Normal, mode);
     }
+    return icon;
+}
+
+enum class TypeAdjustment { FontSize, LetterSpacing };
+
+QPixmap adjustmentIcon(TypeAdjustment adjustment)
+{
+    QPixmap icon(36, 36);
+    icon.fill(Qt::transparent);
+    icon.setDevicePixelRatio(2);
+    QPainter p(&icon);
+    p.setRenderHint(QPainter::Antialiasing);
+    p.setPen(QPen(ink, 1.25, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    QPainterPath lines;
+    if (adjustment == TypeAdjustment::FontSize) {
+        lines.moveTo(1.5, 14);
+        lines.lineTo(5.5, 4);
+        lines.lineTo(9.5, 14);
+        lines.moveTo(3, 10.5);
+        lines.lineTo(8, 10.5);
+        lines.moveTo(13.5, 4);
+        lines.lineTo(13.5, 14);
+        lines.moveTo(11.5, 6);
+        lines.lineTo(13.5, 4);
+        lines.lineTo(15.5, 6);
+        lines.moveTo(11.5, 12);
+        lines.lineTo(13.5, 14);
+        lines.lineTo(15.5, 12);
+    } else {
+        lines.moveTo(1.5, 4);
+        lines.lineTo(1.5, 14);
+        lines.moveTo(16.5, 4);
+        lines.lineTo(16.5, 14);
+        lines.moveTo(4.5, 9);
+        lines.lineTo(13.5, 9);
+        lines.moveTo(6.5, 7);
+        lines.lineTo(4.5, 9);
+        lines.lineTo(6.5, 11);
+        lines.moveTo(11.5, 7);
+        lines.lineTo(13.5, 9);
+        lines.lineTo(11.5, 11);
+    }
+    p.drawPath(lines);
+    p.end();
     return icon;
 }
 
@@ -139,7 +184,7 @@ public:
     explicit ReaderCanvas(ReaderWindow *window) : QWidget(window), reader(window)
     {
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        setAccessibleName(u"본문"_s);
+        setAccessibleName(ReaderWindow::tr("Reading area"));
     }
     int margin() const { return std::clamp(width() / 17, 22, 68); }
     int gutter() const { return std::clamp(width() / 18, 27, 59); }
@@ -159,11 +204,12 @@ protected:
         const auto current = reader->visibleIndex();
         if (!reader->document || pages.empty() || (reader->waiting && reader->preview.empty())) {
             p.setFont(readingFont(20, 0));
-            const auto primary = reader->waiting ? u"페이지를 나누는 중…"_s : reader->status.isEmpty() ? u"Good Text Viewer"_s : reader->status;
+            const auto primary = reader->waiting ? ReaderWindow::tr("Preparing pages…") : reader->status.isEmpty() ? u"Good Text Viewer"_s : reader->status;
             p.drawText(rect().adjusted(25, 0, -25, -36), Qt::AlignCenter | Qt::TextWordWrap, primary);
             if (reader->status.isEmpty() && !reader->waiting) {
                 p.setFont(font());
-                p.drawText(rect().adjusted(25, 32, -25, 0), Qt::AlignCenter | Qt::TextWordWrap, u"TXT 파일을 여기에 놓거나 열기 버튼을 누르세요."_s);
+                p.drawText(rect().adjusted(25, 32, -25, 0), Qt::AlignCenter | Qt::TextWordWrap,
+                    ReaderWindow::tr("Drop a TXT file here or click Open."));
             }
             return;
         }
@@ -228,12 +274,17 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     surface->setStyleSheet(uR"(
         #parchment { background:#e6d3af; }
         QLabel { color:#392e22; }
-        #rail { background:#efdfc2; border:1px solid #d0bb97; border-radius:12px; }
+        #rail { background:#efdfc2; border:1px solid #cbb592; border-radius:12px; }
+        #railDivider { background:#cbb592; }
         QPushButton { color:#392e22; border:1px solid transparent; border-radius:7px; padding:4px; }
         QPushButton:hover { background:#dccaab; }
         QPushButton:checked { background:#a77547; color:#fff3d9; }
         QPushButton:focus { border-color:#a77547; }
         QPushButton:disabled { color:#998c78; }
+        QPushButton[typeAdjustment="true"] { padding:1px; font-size:15px; font-weight:600; }
+        QPushButton[typeAdjustment="true"]:pressed { background:#cdb491; }
+        QPushButton[typeAdjustment="true"]:focus { border-color:#89603c; }
+        QPushButton[typeAdjustment="true"]:disabled { background:transparent; }
         #filename { font-weight:600; }
     )"_s);
     setCentralWidget(surface);
@@ -251,7 +302,8 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     fileName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     fileName->setAttribute(Qt::WA_TransparentForMouseEvents);
     headerLayout->addWidget(fileName, 1);
-    auto *openButton = button(QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText) + u"  열기"_s, u"TXT 열기"_s, titleStrip);
+    const auto openShortcut = QKeySequence(QKeySequence::Open).toString(QKeySequence::NativeText);
+    auto *openButton = button(tr("%1  Open").arg(openShortcut), tr("Open a TXT file"), titleStrip);
     openButton->setFocusPolicy(Qt::TabFocus);
     headerLayout->addWidget(openButton);
     connect(openButton, &QPushButton::clicked, this, &ReaderWindow::chooseFile);
@@ -268,42 +320,59 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     body->addWidget(canvas, 1);
     auto *rail = new QWidget(surface);
     rail->setObjectName(u"rail"_s);
+    rail->setAttribute(Qt::WA_StyledBackground);
     rail->setFixedWidth(59);
     auto *railLayout = new QVBoxLayout(rail);
     railLayout->setContentsMargins(6, 7, 6, 7);
     railLayout->setSpacing(1);
-    singleButton = button({}, u"한쪽 보기"_s, rail);
-    spreadButton = button({}, u"두쪽 보기"_s, rail);
+    singleButton = button({}, tr("Single-page view"), rail);
+    spreadButton = button({}, tr("Two-page view"), rail);
     singleButton->setIcon(bookIcon(false));
     spreadButton->setIcon(bookIcon(true));
     for (auto *b : {singleButton, spreadButton}) {
         b->setCheckable(true);
-        b->setFixedHeight(37);
+        b->setFixedHeight(33);
         railLayout->addWidget(b);
     }
     connect(singleButton, &QPushButton::clicked, this, [this] { setPageMode(1); });
     connect(spreadButton, &QPushButton::clicked, this, [this] { setPageMode(2); });
-    const auto controls = [&](QPushButton *&more, QLabel *&value, QPushButton *&less, const QString &what, const QString &id) {
-        railLayout->addSpacing(6);
-        auto *caption = new QLabel(what, rail);
-        caption->setAlignment(Qt::AlignCenter);
-        auto mini = caption->font(); mini.setPixelSize(10); caption->setFont(mini);
-        railLayout->addWidget(caption);
+    const auto controls = [&](QPushButton *&more, QLabel *&value, QPushButton *&less,
+                              TypeAdjustment adjustment, const QString &valueName, const QString &id,
+                              const QString &moreName, const QString &lessName) {
+        auto *separator = new QWidget(rail);
+        separator->setObjectName(u"railDivider"_s);
+        separator->setAttribute(Qt::WA_StyledBackground);
+        separator->setFixedSize(29, 1);
+        railLayout->addSpacing(5);
+        railLayout->addWidget(separator, 0, Qt::AlignHCenter);
+        railLayout->addSpacing(5);
+
+        auto *icon = new QLabel(rail);
+        icon->setPixmap(adjustmentIcon(adjustment));
+        icon->setAlignment(Qt::AlignCenter);
+        icon->setFixedHeight(20);
+        icon->setToolTip(valueName);
+        railLayout->addWidget(icon);
         value = new QLabel(rail);
         value->setAlignment(Qt::AlignCenter);
         value->setObjectName(id);
-        value->setAccessibleName(what);
+        value->setAccessibleName(valueName);
         value->setFixedHeight(22);
         auto number = value->font(); number.setPixelSize(15); number.setWeight(QFont::DemiBold); value->setFont(number);
-        more = button(u"+"_s, what + u" 늘리기"_s, rail);
-        less = button(u"−"_s, what + u" 줄이기"_s, rail);
-        for (auto *b : {more, less}) b->setFixedHeight(25);
+        more = button(u"+"_s, moreName, rail);
+        less = button(u"−"_s, lessName, rail);
+        for (auto *b : {more, less}) {
+            b->setProperty("typeAdjustment", true);
+            b->setFixedHeight(25);
+        }
         railLayout->addWidget(more);
         railLayout->addWidget(value);
         railLayout->addWidget(less);
     };
-    controls(fontMore, fontValue, fontLess, u"글자"_s, u"fontValue"_s);
-    controls(spacingMore, spacingValue, spacingLess, u"자간"_s, u"spacingValue"_s);
+    controls(fontMore, fontValue, fontLess, TypeAdjustment::FontSize, tr("Font size"), u"fontValue"_s,
+        tr("Increase font size"), tr("Decrease font size"));
+    controls(spacingMore, spacingValue, spacingLess, TypeAdjustment::LetterSpacing, tr("Letter spacing"), u"spacingValue"_s,
+        tr("Increase letter spacing"), tr("Decrease letter spacing"));
     connect(fontMore, &QPushButton::clicked, this, [this] { adjustFont(1); });
     connect(fontLess, &QPushButton::clicked, this, [this] { adjustFont(-1); });
     connect(spacingMore, &QPushButton::clicked, this, [this] { adjustSpacing(1); });
@@ -318,8 +387,8 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     footer->setContentsMargins(7, 0, 7, 0);
     footer->setSpacing(1);
     auto *arrows = new QHBoxLayout;
-    previous = button(u"‹"_s, u"이전 페이지"_s, bottom);
-    next = button(u"›"_s, u"다음 페이지"_s, bottom);
+    previous = button(u"‹"_s, tr("Previous page"), bottom);
+    next = button(u"›"_s, tr("Next page"), bottom);
     previous->setFixedWidth(44);
     next->setFixedWidth(44);
     percent = new QLabel(bottom);
@@ -334,8 +403,8 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     footer->addLayout(arrows);
     progress = new SeekBar(Qt::Horizontal, bottom);
     progress->setObjectName(u"progress"_s);
-    progress->setAccessibleName(u"읽기 진행도"_s);
-    progress->setToolTip(u"클릭하거나 끌어서 이동"_s);
+    progress->setAccessibleName(tr("Reading progress"));
+    progress->setToolTip(tr("Click or drag to jump to a reading position"));
     progress->setRange(0, seekRange);
     progress->setSingleStep(100);
     progress->setPageStep(1000);
@@ -351,33 +420,33 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     connect(progress, &QSlider::valueChanged, this, [this](int value) { seek(value); });
     connect(progress, &QSlider::sliderReleased, this, [this] { refresh(); });
 
-    auto *fileMenu = menuBar()->addMenu(u"파일"_s);
-    fileMenu->addAction(u"열기…"_s, QKeySequence::Open, this, &ReaderWindow::chooseFile);
-    fileMenu->addAction(u"창 닫기"_s, QKeySequence::Close, this, &QWidget::close);
-    auto *viewMenu = menuBar()->addMenu(u"보기"_s);
-    viewMenu->addAction(u"한쪽 보기"_s, QKeySequence(Qt::CTRL | Qt::Key_1), this, [this] { setPageMode(1); });
-    viewMenu->addAction(u"두쪽 보기"_s, QKeySequence(Qt::CTRL | Qt::Key_2), this, [this] { setPageMode(2); });
+    auto *fileMenu = menuBar()->addMenu(tr("File"));
+    fileMenu->addAction(tr("Open…"), QKeySequence::Open, this, &ReaderWindow::chooseFile);
+    fileMenu->addAction(tr("Close window"), QKeySequence::Close, this, &QWidget::close);
+    auto *viewMenu = menuBar()->addMenu(tr("View"));
+    viewMenu->addAction(tr("Single-page view"), QKeySequence(Qt::CTRL | Qt::Key_1), this, [this] { setPageMode(1); });
+    viewMenu->addAction(tr("Two-page view"), QKeySequence(Qt::CTRL | Qt::Key_2), this, [this] { setPageMode(2); });
     viewMenu->addSeparator();
-    auto *increase = viewMenu->addAction(u"글자 크게"_s, QKeySequence::ZoomIn, this, [this] { adjustFont(1); });
+    auto *increase = viewMenu->addAction(tr("Increase font size"), QKeySequence::ZoomIn, this, [this] { adjustFont(1); });
     increase->setShortcuts({QKeySequence(Qt::CTRL | Qt::Key_Plus), QKeySequence(Qt::CTRL | Qt::Key_Equal)});
-    viewMenu->addAction(u"글자 작게"_s, QKeySequence::ZoomOut, this, [this] { adjustFont(-1); });
-    viewMenu->addAction(u"자간 넓게"_s, QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_BracketRight), this, [this] { adjustSpacing(1); });
-    viewMenu->addAction(u"자간 좁게"_s, QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_BracketLeft), this, [this] { adjustSpacing(-1); });
+    viewMenu->addAction(tr("Decrease font size"), QKeySequence::ZoomOut, this, [this] { adjustFont(-1); });
+    viewMenu->addAction(tr("Increase letter spacing"), QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_BracketRight), this, [this] { adjustSpacing(1); });
+    viewMenu->addAction(tr("Decrease letter spacing"), QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_BracketLeft), this, [this] { adjustSpacing(-1); });
     viewMenu->addSeparator();
-    repairAction = viewMenu->addAction(u"오래된 문서 줄바꿈 자동 정리"_s);
+    repairAction = viewMenu->addAction(tr("Clean up hard line breaks"));
     repairAction->setCheckable(true);
     repairAction->setChecked(repair);
     connect(repairAction, &QAction::toggled, this, &ReaderWindow::setRepair);
-    auto *navigation = menuBar()->addMenu(u"이동"_s);
-    navigation->addAction(u"이전 페이지"_s, this, [this] { step(-1); });
-    navigation->addAction(u"다음 페이지"_s, this, [this] { step(1); });
-    auto *window = menuBar()->addMenu(u"윈도우"_s);
-    window->addAction(u"최소화"_s, QKeySequence(Qt::CTRL | Qt::Key_M), this, &QWidget::showMinimized);
-    window->addAction(u"확대/축소"_s, this, [this] { isMaximized() ? showNormal() : showMaximized(); });
-    auto *help = menuBar()->addMenu(u"도움말"_s);
-    auto *about = help->addAction(u"Good Text Viewer 정보"_s, this, [this] {
-        QMessageBox::about(this, u"Good Text Viewer 정보"_s,
-            u"<h3>Good Text Viewer</h3><p>버전 %1 · Dev Dot.</p><p>경량 TXT 뷰어 · MIT License</p><p>Qt %2</p>"_s.arg(QString::fromLatin1(READER_VERSION), QString::fromLatin1(qVersion())));
+    auto *navigation = menuBar()->addMenu(tr("Go"));
+    navigation->addAction(tr("Previous page"), this, [this] { step(-1); });
+    navigation->addAction(tr("Next page"), this, [this] { step(1); });
+    auto *window = menuBar()->addMenu(tr("Window"));
+    window->addAction(tr("Minimize"), QKeySequence(Qt::CTRL | Qt::Key_M), this, &QWidget::showMinimized);
+    window->addAction(tr("Zoom"), this, [this] { isMaximized() ? showNormal() : showMaximized(); });
+    auto *help = menuBar()->addMenu(tr("Help"));
+    auto *about = help->addAction(tr("About Good Text Viewer"), this, [this] {
+        QMessageBox::about(this, tr("About Good Text Viewer"),
+            tr("<h3>Good Text Viewer</h3><p>Version %1 · Dev Dot.</p><p>Plain-text reader · MIT License</p><p>Qt %2</p>").arg(QString::fromLatin1(READER_VERSION), QString::fromLatin1(qVersion())));
     });
     about->setMenuRole(QAction::AboutRole);
     const auto shortcut = [this](QKeySequence keys, auto f) { new QShortcut(keys, this, f); };
@@ -468,7 +537,7 @@ void ReaderWindow::restoreLastFile()
 void ReaderWindow::chooseFile()
 {
     const auto dir = document ? QFileInfo(document->path).absolutePath() : QString{};
-    const auto selected = QFileDialog::getOpenFileName(this, u"TXT 파일 열기"_s, dir, u"텍스트 파일 (*.txt *.TXT)"_s);
+    const auto selected = QFileDialog::getOpenFileName(this, tr("Open TXT File"), dir, tr("Text files (*.txt *.TXT)"));
     if (!selected.isEmpty()) open(selected);
 }
 
@@ -480,7 +549,7 @@ void ReaderWindow::startLoad(const QString &path, std::optional<double> oldFract
     const auto token = loadToken = std::make_shared<std::atomic_bool>();
     const auto mode = repair;
     loadingPath = path;
-    status = u"불러오는 중…"_s;
+    status = tr("Opening…");
     refresh();
     workers.start([this, path, mode, token, oldFraction] {
         auto result = load(path, mode, token);
@@ -696,7 +765,7 @@ void ReaderWindow::startPreview()
 void ReaderWindow::refresh()
 {
     const auto title = document ? QFileInfo(document->path).fileName() : u"Good Text Viewer"_s;
-    fileName->setText(loadingPath.isEmpty() ? title : QFileInfo(loadingPath).fileName() + u" · 불러오는 중…"_s);
+    fileName->setText(loadingPath.isEmpty() ? title : tr("%1 · Opening…").arg(QFileInfo(loadingPath).fileName()));
     fileName->setToolTip(status.isEmpty() ? title : status);
     fontValue->setText(QString::number(fontSize));
     spacingValue->setText(QString::number(spacing / 10.0, 'f', 1));
@@ -718,7 +787,7 @@ void ReaderWindow::refresh()
     const auto anchor = pendingAnchor.value_or(!ready ? 0 : end ? document->text.size() : pages[current].start);
     const int value = document && !document->text.isEmpty() ? qRound(anchor * double(seekRange) / document->text.size()) : 0;
     percent->setText((!document && !status.isEmpty() ? status : (document ? QString::number(qRound(value / 100.0)) + u"%"_s : u"—"_s)));
-    if (!status.isEmpty() && document && loadingPath.isEmpty()) percent->setText(u"열기 실패"_s);
+    if (!status.isEmpty() && document && loadingPath.isEmpty()) percent->setText(tr("Couldn't open file"));
     percent->setToolTip(status);
     if (!progress->isSliderDown()) {
         const QSignalBlocker blocker(progress);

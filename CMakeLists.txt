@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(GoodTextViewer VERSION 1.1.0 LANGUAGES CXX)
+project(GoodTextViewer VERSION 1.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,7 +8,7 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 6.8 REQUIRED COMPONENTS Widgets LinguistTools)
 if(APPLE AND TARGET WrapOpenGL::WrapOpenGL)
     # Qt 6.8.3's CMake helper adds the obsolete AGL framework even when
     # the macOS 26 SDK no longer ships it. The 64-bit Qt binaries don't use it.
@@ -93,3 +93,14 @@ if(BUILD_TESTING)
     add_test(NAME ReaderTests COMMAND reader_tests)
     set_tests_properties(ReaderTests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()
+
+set(translation_targets GoodTextViewer)
+if(BUILD_TESTING)
+    list(APPEND translation_targets reader_tests)
+endif()
+qt_add_translations(TARGETS ${translation_targets}
+    SOURCE_TARGETS GoodTextViewer reader_core
+    TS_FILES "${CMAKE_CURRENT_SOURCE_DIR}/Qt/Translations/GoodTextViewer_ko.ts"
+    RESOURCE_PREFIX "/i18n"
+    NO_GENERATE_PLURALS_TS_FILE
+)

@@ -4,6 +4,8 @@
 
 책처럼 한쪽 또는 두쪽으로 읽는 경량 `.txt` 뷰어입니다. 1.1.0부터 C++와 Qt로 macOS와 Windows를 지원합니다.
 
+앱은 시스템 언어에 맞춰 한국어와 영어로 표시됩니다. 오른쪽 패널에서 보기 방식, 글자 크기, 자간을 조절할 수 있습니다.
+
 - macOS 공개판은 Homebrew 또는 GitHub 릴리스에서 받을 수 있습니다. Windows 시험판은 아래 방법으로 빌드할 수 있습니다.
 - 개발/배포: **Dev Dot.**
 
@@ -29,7 +31,7 @@ Homebrew를 사용하지 않는다면 [GitHub 릴리스](https://github.com/arde
 
 ## 빌드 및 실행
 
-CMake 3.24 이상, C++20 컴파일러, Qt 6.8 Widgets SDK가 필요합니다. macOS 유니버설 앱은 Xcode 16 이상과 유니버설 Qt SDK를 사용합니다. `CMAKE_PREFIX_PATH`를 Qt 설치 디렉터리로 지정한 뒤 프로젝트 루트에서 실행합니다.
+CMake 3.24 이상, C++20 컴파일러, Widgets와 Linguist Tools가 포함된 Qt 6.8이 필요합니다. macOS 유니버설 앱은 Xcode 16 이상과 유니버설 Qt SDK를 사용합니다. `CMAKE_PREFIX_PATH`를 Qt 설치 디렉터리로 지정한 뒤 프로젝트 루트에서 실행합니다.
 
 ```sh
 make test
@@ -100,8 +102,8 @@ make release
 생성 결과:
 
 ```text
-dist/Good-Text-Viewer-1.1.0-macOS-universal.zip
-dist/Good-Text-Viewer-1.1.0-macOS-universal.zip.sha256
+dist/Good-Text-Viewer-1.1.1-macOS-universal.zip
+dist/Good-Text-Viewer-1.1.1-macOS-universal.zip.sha256
 ```
 
 기본 결과는 ad-hoc 서명된 로컬 검증본입니다. 공개 게시본은 Developer ID로 서명하고 Apple 공증을 마친 뒤 만들어야 합니다.

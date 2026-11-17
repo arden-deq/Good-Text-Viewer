@@ -1,5 +1,6 @@
 #include "TextDocument.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
@@ -140,16 +141,16 @@ LoadResult decodeInto(QByteArrayView bytes, std::shared_ptr<Document> document, 
                 if (decoded && !plausibleUnicode(*decoded)) decoded.reset();
             }
         }
-        if (binary && !decoded) return {{}, u"텍스트가 아닌 파일로 보입니다."_s};
+        if (binary && !decoded) return {{}, QCoreApplication::translate("TextDocument", "This file does not appear to contain plain text.")};
         if (!decoded) {
             encoding = Encoding::Cp949;
             decoded = decodeCp949(bytes);
         }
     }
     if (!decoded)
-        return {{}, u"지원하는 문자 인코딩으로 읽을 수 없습니다."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "The file's text encoding is not supported.")};
     if (decoded->contains(QChar::Null))
-        return {{}, u"텍스트가 아닌 파일로 보입니다."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "This file does not appear to contain plain text.")};
     if (decoded->startsWith(QChar::ByteOrderMark))
         decoded->remove(0, 1);
     document->encoding = encoding;
@@ -172,15 +173,15 @@ LoadResult load(const QString &path, bool repair, const Cancel &cancel)
         return {};
     const QFileInfo info(path);
     if (info.suffix().compare(u"txt", Qt::CaseInsensitive))
-        return {{}, u"TXT 파일만 열 수 있습니다."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "Only TXT files can be opened.")};
     if (!info.isFile())
-        return {{}, u"일반 TXT 파일이 아닙니다."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "This is not a regular TXT file.")};
     QFile file(info.absoluteFilePath());
     if (!file.open(QIODevice::ReadOnly))
-        return {{}, u"파일을 읽을 수 없습니다. 권한과 파일 상태를 확인해 주세요."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "Could not read the file. Check that it is accessible.")};
     const auto size = file.size();
     if (size > maxFileSize)
-        return {{}, u"2GiB 미만의 TXT 파일을 열 수 있습니다."_s};
+        return {{}, QCoreApplication::translate("TextDocument", "TXT files must be smaller than 2 GiB.")};
     QByteArray bytes;
     bytes.reserve(qsizetype(size));
     while (!file.atEnd()) {
@@ -188,9 +189,9 @@ LoadResult load(const QString &path, bool repair, const Cancel &cancel)
             return {};
         bytes.append(file.read(1024 * 1024));
         if (file.error() != QFileDevice::NoError)
-            return {{}, u"파일을 읽을 수 없습니다."_s};
+            return {{}, QCoreApplication::translate("TextDocument", "Could not read the file.")};
         if (bytes.size() > maxFileSize)
-            return {{}, u"2GiB 미만의 TXT 파일을 열 수 있습니다."_s};
+            return {{}, QCoreApplication::translate("TextDocument", "TXT files must be smaller than 2 GiB.")};
     }
     auto result = std::make_shared<Document>();
     result->path = info.absoluteFilePath();

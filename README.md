@@ -4,6 +4,8 @@
 
 Read plain-text novels like a book. Good Text Viewer opens `.txt` files in single-page or two-page view, with adjustable type and optional cleanup for hard-wrapped lines in older files. Version 1.1.0 uses C++ and Qt for macOS and Windows.
 
+The app follows your system language for English and Korean. The side panel groups view mode, font size, and letter spacing.
+
 Built by **Dev Dot.** · [Latest release](https://github.com/arden-deq/Good-Text-Viewer/releases/latest)
 
 ## Install
@@ -67,7 +69,7 @@ The reader detects UTF-8, UTF-16, and legacy Korean CP949 on both platforms. For
 
 ## Build from source
 
-Install CMake 3.24+, a C++20 toolchain, and the Qt 6.8 Widgets SDK. On macOS, use Xcode 16 or later and a universal Qt SDK; set `CMAKE_PREFIX_PATH` to its Qt installation directory.
+Install CMake 3.24+, a C++20 toolchain, and Qt 6.8 with Widgets and Linguist Tools. On macOS, use Xcode 16 or later and a universal Qt SDK. Set `CMAKE_PREFIX_PATH` to its Qt installation directory.
 
 ```sh
 make test
