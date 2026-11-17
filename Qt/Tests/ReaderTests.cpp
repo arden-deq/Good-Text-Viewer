@@ -12,6 +12,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
+#include <QRawFont>
 #include <QSignalSpy>
 #include <QSlider>
 #include <QTemporaryDir>
@@ -92,6 +93,20 @@ private slots:
         originalLines.replace(u"\r\n"_s, u"\n"_s);
         QVERIFY(originalLines.contains(u"burning when Nora\nreached"));
         QVERIFY(repaired.document->text.contains(u"burning when Nora reached"));
+    }
+
+    void bundledReadingFont()
+    {
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+        const auto font = QRawFont::fromFont(readingFont(18, 0));
+        QVERIFY(font.isValid());
+        QVERIFY(font.familyName().startsWith(u"Noto Serif KR"));
+        QCOMPARE(font.weight(), QFont::Medium);
+        QVERIFY(font.supportsCharacter(u'한'));
+        QVERIFY(font.supportsCharacter(u'A'));
+#else
+        QSKIP("The reading font is bundled on macOS and Windows.");
+#endif
     }
 
     void pagesAndKoreanWords()
@@ -238,6 +253,55 @@ private slots:
         QVERIFY(restoredPage.last().first().toLongLong() > stored);
     }
 
+    void pagePositionFollowsViewMode()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        QFile text(dir.filePath(u"Story.txt"_s));
+        QVERIFY(text.open(QIODevice::WriteOnly));
+        QVERIFY(text.write(sample.repeated(200).toUtf8()) > 0);
+        text.close();
+
+        ReaderWindow window(dir.filePath(u"settings.ini"_s));
+        auto *position = window.findChild<QLabel *>(u"pagePosition"_s);
+        auto *slider = window.findChild<QSlider *>(u"progress"_s);
+        const auto button = [&window](const QString &name) {
+            for (auto *control : window.findChildren<QPushButton *>()) {
+                if (control->accessibleName() == name) return control;
+            }
+            return static_cast<QPushButton *>(nullptr);
+        };
+        auto *spread = button(u"Two-page view"_s);
+        auto *next = button(u"Next page"_s);
+        QVERIFY(position && slider && spread && next);
+        QCOMPARE(position->text(), u"—"_s);
+
+        QSignalSpy finished(&window, &ReaderWindow::layoutFinished);
+        QString firstPosition;
+        connect(&window, &ReaderWindow::pageShown, &window, [&] {
+            if (firstPosition.isEmpty()) firstPosition = position->text();
+        });
+        window.show();
+        window.open(text.fileName());
+        QTRY_VERIFY(!finished.isEmpty());
+        QCOMPARE(firstPosition, u"1 / …"_s);
+        const auto singleTotal = finished.last().first().toLongLong();
+        QCOMPARE(position->text(), u"1 / %1"_s.arg(singleTotal));
+        next->click();
+        QCOMPARE(position->text(), u"2 / %1"_s.arg(singleTotal));
+
+        slider->setValue(slider->minimum());
+        finished.clear();
+        spread->click();
+        QTRY_VERIFY(!finished.isEmpty());
+        const auto spreadTotal = (finished.last().first().toLongLong() + 1) / 2;
+        QCOMPARE(position->text(), u"1 / %1"_s.arg(spreadTotal));
+        next->click();
+        QCOMPARE(position->text(), u"2 / %1"_s.arg(spreadTotal));
+        slider->setValue(slider->maximum());
+        QCOMPARE(position->text(), u"%1 / %1"_s.arg(spreadTotal));
+    }
+
     void recentFiles()
     {
         QTemporaryDir dir;
@@ -342,10 +406,11 @@ private slots:
             QVERIFY(!window.grab().isNull());
             const auto seekEnd = timer.elapsed();
             QVERIFY(!jumped.isEmpty());
-            QCOMPARE(window.findChild<QLabel *>(u"percent"_s)->text(), u"100%"_s);
+            const auto total = complete.first().first().toLongLong();
+            QCOMPARE(window.findChild<QLabel *>(u"pagePosition"_s)->text(), u"%1 / %1"_s.arg(total));
             const auto name = QFileInfo(path).fileName();
             const auto bytes = QFileInfo(path).size();
-            qInfo().noquote() << name << bytes << "bytes" << complete.first().first().toLongLong() << "pages:"
+            qInfo().noquote() << name << bytes << "bytes" << total << "pages:"
                 << "first paint" << first << "ms, early end + paint" << earlyEnd << "ms, indexed" << indexed
                 << "ms, indexed end + paint" << seekEnd << "ms";
         }

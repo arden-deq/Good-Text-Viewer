@@ -51,10 +51,17 @@ Padding closingPadding(QStringView s, qreal width, const QFontMetricsF &metrics)
 QFont readingFont(int size, int spacingTenths)
 {
     QFont font;
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+    static const auto bundledFamilies = [] {
+        const auto id = QFontDatabase::addApplicationFont(QStringLiteral(":/Assets/Fonts/NotoSerifKR-Medium.otf"));
+        return QFontDatabase::applicationFontFamilies(id);
+    }();
+    font.setWeight(QFont::Medium);
+#endif
 #ifdef Q_OS_MACOS
-    font.setFamilies({QStringLiteral("AppleMyungjo"), QStringLiteral("Nanum Myeongjo"), QStringLiteral("Times New Roman")});
+    font.setFamilies(bundledFamilies + QStringList{QStringLiteral("AppleMyungjo"), QStringLiteral("Times New Roman")});
 #elif defined(Q_OS_WIN)
-    font.setFamilies({QStringLiteral("Batang"), QStringLiteral("Malgun Gothic"), QStringLiteral("Gowun Batang"), QStringLiteral("Times New Roman")});
+    font.setFamilies(bundledFamilies + QStringList{QStringLiteral("Batang"), QStringLiteral("Malgun Gothic"), QStringLiteral("Times New Roman")});
 #else
     font.setFamilies({QStringLiteral("Noto Serif CJK KR"), QStringLiteral("serif")});
 #endif

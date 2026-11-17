@@ -7,7 +7,6 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
-#include <QFontDatabase>
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
@@ -27,6 +26,9 @@
 
 #ifdef Q_OS_MACOS
 #include "MacTitleBar.h"
+#elif defined(Q_OS_WIN)
+#include <QProxyStyle>
+#include <QStyleOptionMenuItem>
 #endif
 
 using namespace Qt::StringLiterals;
@@ -36,6 +38,27 @@ namespace {
 
 constexpr int seekRange = 10000;
 const QColor paper(230, 211, 175), ink(42, 33, 24), accent(167, 117, 71);
+
+#ifdef Q_OS_WIN
+class CompactMenuStyle final : public QProxyStyle {
+public:
+    using QProxyStyle::QProxyStyle;
+
+    QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &contents,
+                           const QWidget *widget) const override
+    {
+        auto size = QProxyStyle::sizeFromContents(type, option, contents, widget);
+        if (type == CT_MenuBarItem) {
+            size.rwidth() -= std::clamp(size.width() - contents.width() - 8, 0, 6);
+        } else if (type == CT_MenuItem) {
+            const auto *item = qstyleoption_cast<const QStyleOptionMenuItem *>(option);
+            if (item && item->menuItemType != QStyleOptionMenuItem::Separator)
+                size.rheight() -= std::clamp(size.height() - item->fontMetrics.height() - 6, 0, 3);
+        }
+        return size;
+    }
+};
+#endif
 
 QPushButton *button(const QString &text, const QString &name, QWidget *parent)
 {
@@ -234,20 +257,6 @@ private:
 
 ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFile)
 {
-#ifdef Q_OS_WIN
-    // English-only Windows can lack the optional Korean system fonts. Register
-    // the bundled fallback once only when neither system family is available.
-    static const bool fontReady = [] {
-        const auto families = QFontDatabase::families(QFontDatabase::Korean);
-        if (!families.contains(u"Batang"_s, Qt::CaseInsensitive) &&
-            !families.contains(u"Malgun Gothic"_s, Qt::CaseInsensitive)) {
-            if (QFontDatabase::addApplicationFont(u":/Assets/Fonts/GowunBatang-Regular.ttf"_s) >= 0)
-                QFontDatabase::addApplicationFallbackFontFamily(QChar::Script_Hangul, u"Gowun Batang"_s);
-        }
-        return true;
-    }();
-    Q_UNUSED(fontReady);
-#endif
     auto &prefs = preferences.store();
     pageMode = prefs.value(u"pageMode"_s, 1).toInt() == 2 ? 2 : 1;
     fontSize = std::clamp(prefs.value(u"fontSize"_s, 18).toInt(), 12, 36);
@@ -393,13 +402,13 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
     next = button(u"›"_s, tr("Next page"), bottom);
     previous->setFixedWidth(44);
     next->setFixedWidth(44);
-    percent = new QLabel(bottom);
-    percent->setAlignment(Qt::AlignCenter);
-    percent->setObjectName(u"percent"_s);
-    percent->setFixedWidth(125);
+    pagePosition = new QLabel(bottom);
+    pagePosition->setAlignment(Qt::AlignCenter);
+    pagePosition->setObjectName(u"pagePosition"_s);
+    pagePosition->setFixedWidth(125);
     arrows->addStretch();
     arrows->addWidget(previous);
-    arrows->addWidget(percent);
+    arrows->addWidget(pagePosition);
     arrows->addWidget(next);
     arrows->addStretch();
     footer->addLayout(arrows);
@@ -463,6 +472,12 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
             tr("<h3>Good Text Viewer</h3><p>Version %1 · Dev Dot.</p><p>Plain-text reader · MIT License</p><p>Qt %2</p>").arg(QString::fromLatin1(READER_VERSION), QString::fromLatin1(qVersion())));
     });
     about->setMenuRole(QAction::AboutRole);
+#ifdef Q_OS_WIN
+    auto *menuStyle = new CompactMenuStyle(menuBar()->style()->name());
+    menuStyle->setParent(this);
+    menuBar()->setStyle(menuStyle);
+    for (auto *menu : {fileMenu, recentMenu, viewMenu, navigation, window, help}) menu->setStyle(menuStyle);
+#endif
     const auto shortcut = [this](QKeySequence keys, auto f) { new QShortcut(keys, this, f); };
     for (auto key : {Qt::Key_Right, Qt::Key_Down, Qt::Key_PageDown, Qt::Key_Space})
         shortcut(QKeySequence(key), [this] { step(1); });
@@ -798,11 +813,20 @@ void ReaderWindow::refresh()
         visible[std::min(visible.size() - 1, pos + distance - 1)].end < document->text.size()));
     progress->setEnabled(document && !document->text.isEmpty());
     const bool end = ready && complete && current + distance >= pages.size() && (current || !document->text.isEmpty());
-    const auto anchor = pendingAnchor.value_or(!ready ? 0 : end ? document->text.size() : pages[current].start);
+    const auto anchor = pendingAnchor.value_or(!ready ? 0 : end ? document->text.size() : visible[pos].start);
     const int value = document && !document->text.isEmpty() ? qRound(anchor * double(seekRange) / document->text.size()) : 0;
-    percent->setText((!document && !status.isEmpty() ? status : (document ? QString::number(qRound(value / 100.0)) + u"%"_s : u"—"_s)));
-    if (!status.isEmpty() && document && loadingPath.isEmpty()) percent->setText(tr("Couldn't open file"));
-    percent->setToolTip(status);
+    QString position = u"—"_s;
+    if (!status.isEmpty() && !document) {
+        position = status;
+    } else if (!status.isEmpty() && loadingPath.isEmpty()) {
+        position = tr("Couldn't open file");
+    } else if (document) {
+        const auto number = ready && preview.empty() ? QString::number(qulonglong(current / distance + 1)) : u"…"_s;
+        const auto total = complete ? QString::number(qulonglong((pages.size() + distance - 1) / distance)) : u"…"_s;
+        position = u"%1 / %2"_s.arg(number, total);
+    }
+    pagePosition->setText(position);
+    pagePosition->setToolTip(status);
     if (!progress->isSliderDown()) {
         const QSignalBlocker blocker(progress);
         progress->setValue(value);

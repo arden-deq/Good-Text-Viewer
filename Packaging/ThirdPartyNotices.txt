@@ -18,6 +18,6 @@ https://gcc.gnu.org/onlinedocs/libstdc++/manual/license.html
 https://www.gnu.org/licenses/gcc-exception-3.1.html
 https://www.mingw-w64.org/
 
-The Windows bundle includes Gowun Batang for systems without Korean fonts.
+The macOS and Windows bundles include Noto Serif KR Medium for the reading view.
 It is distributed under the SIL Open Font License 1.1 (see licenses/).
-https://github.com/yangheeryu/Gowun-Batang/tree/4e73f5a9a004927220354f4b68a4c720da538147
+https://github.com/notofonts/noto-cjk/tree/Serif2.003/Serif/SubsetOTF/KR

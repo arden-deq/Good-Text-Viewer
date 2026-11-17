@@ -78,7 +78,7 @@ private:
 
     ReaderCanvas *canvas;
     QHBoxLayout *headerLayout;
-    QLabel *fileName, *fontValue, *spacingValue, *percent;
+    QLabel *fileName, *fontValue, *spacingValue, *pagePosition;
     QPushButton *singleButton, *spreadButton, *fontLess, *fontMore, *spacingLess, *spacingMore, *previous, *next;
     QSlider *progress;
     QAction *repairAction;
