@@ -82,6 +82,36 @@ jobs:
             }
             throw
           }
+      - name: Smoke-test the portable EXE
+        shell: pwsh
+        run: |
+          $launcher = Get-ChildItem dist/*-Windows-x64.exe | Select-Object -First 1
+          $story = (Resolve-Path "Samples/The-Harbor-Lantern.txt").Path
+          $wrapper = Start-Process $launcher.FullName -ArgumentList ('"{0}"' -f $story) -PassThru
+          $reader = $null
+          try {
+            $deadline = (Get-Date).AddSeconds(25)
+            do {
+              $reader = Get-Process -Name GoodTextViewer -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($reader) { break }
+              Start-Sleep -Milliseconds 250
+            } until ((Get-Date) -gt $deadline -or $wrapper.HasExited)
+            if (-not $reader -or -not $reader.WaitForInputIdle(5000)) {
+              throw "The portable launcher did not open Good Text Viewer."
+            }
+            $payload = Split-Path $reader.Path
+            if (-not $payload.StartsWith($env:TEMP, [StringComparison]::OrdinalIgnoreCase)) {
+              throw "The reader did not start from a temporary folder."
+            }
+          } finally {
+            if ($reader -and -not $reader.HasExited) {
+              if (-not $reader.CloseMainWindow() -or -not $reader.WaitForExit(4000)) {
+                Stop-Process -Id $reader.Id -ErrorAction SilentlyContinue
+              }
+            }
+            if (-not $wrapper.WaitForExit(12000)) { Stop-Process -Id $wrapper.Id }
+          }
+          if (Test-Path $payload) { throw "The portable launcher did not clean up the runtime." }
       - uses: actions/upload-artifact@v4
         with:
           name: Windows-x64-portable

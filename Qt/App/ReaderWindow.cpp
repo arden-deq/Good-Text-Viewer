@@ -2,12 +2,14 @@
 
 #include <QAction>
 #include <QCloseEvent>
+#include <QDir>
 #include <QDragEnterEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QFontDatabase>
 #include <QLabel>
+#include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
@@ -422,6 +424,18 @@ ReaderWindow::ReaderWindow(const QString &settingsFile) : preferences(settingsFi
 
     auto *fileMenu = menuBar()->addMenu(tr("File"));
     fileMenu->addAction(tr("Open…"), QKeySequence::Open, this, &ReaderWindow::chooseFile);
+    auto *recentMenu = fileMenu->addMenu(tr("Open Recent"));
+    recentMenu->setObjectName(u"recentFiles"_s);
+    recentMenu->setToolTipsVisible(true);
+    connect(fileMenu, &QMenu::aboutToShow, this, [this, recentMenu] {
+        recentMenu->clear();
+        for (const auto &path : preferences.recentFiles()) {
+            auto name = QFileInfo(path).fileName();
+            auto *action = recentMenu->addAction(name.replace(u"&"_s, u"&&"_s), this, [this, path] { open(path); });
+            action->setToolTip(QDir::toNativeSeparators(path));
+        }
+        if (recentMenu->isEmpty()) recentMenu->addAction(tr("No recent files"))->setEnabled(false);
+    });
     fileMenu->addAction(tr("Close window"), QKeySequence::Close, this, &QWidget::close);
     auto *viewMenu = menuBar()->addMenu(tr("View"));
     viewMenu->addAction(tr("Single-page view"), QKeySequence(Qt::CTRL | Qt::Key_1), this, [this] { setPageMode(1); });
@@ -576,7 +590,7 @@ void ReaderWindow::startLoad(const QString &path, std::optional<double> oldFract
             current = 0;
             complete = waiting = pendingForward = false;
             pendingAnchor = oldFraction ? qsizetype(*oldFraction * document->text.size()) : preferences.anchor(*document, mode);
-            preferences.store().setValue(u"lastDocumentPath"_s, document->path);
+            savePosition();
             reflow();
         }, Qt::QueuedConnection);
     });

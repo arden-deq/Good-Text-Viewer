@@ -4,6 +4,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
 
 #include <algorithm>
 
@@ -74,6 +75,28 @@ ReaderSettings::ReaderSettings(const QString &testFile)
         migrate(*settings);
 #endif
     }
+}
+
+QStringList ReaderSettings::recentFiles() const
+{
+    const auto entries = QJsonDocument::fromJson(settings->value(positionsKey).toByteArray()).array();
+    QStringList files;
+    QSet<QString> seen;
+    for (auto i = entries.size(); i > 0 && files.size() < 10; --i) {
+        const auto path = entries.at(i - 1).toObject().value(u"path"_s).toString();
+        if (path.isEmpty()) continue;
+#ifdef Q_OS_MACOS
+        const auto key = path.normalized(QString::NormalizationForm_C);
+#elif defined(Q_OS_WIN)
+        const auto key = path.toCaseFolded();
+#else
+        const auto &key = path;
+#endif
+        if (seen.contains(key)) continue;
+        seen.insert(key);
+        files.append(path);
+    }
+    return files;
 }
 
 qsizetype ReaderSettings::anchor(const Document &doc, bool repair) const

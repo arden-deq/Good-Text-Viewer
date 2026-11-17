@@ -4,7 +4,7 @@
 
 Read plain-text novels like a book. Good Text Viewer is a fast, lightweight TXT reader for macOS and Windows, with single-page and two-page views, adjustable type, and optional cleanup for hard-wrapped lines in older files.
 
-The app follows your system language for English and Korean. The side panel groups view mode, font size, and letter spacing.
+The app follows your system language for English and Korean. File → Open Recent lists the last 10 TXT files and restores your reading position when you reopen one. The side panel groups view mode, font size, and letter spacing.
 
 **Large TXT files.** Start reading as soon as the first page is ready while the rest of the pages are laid out in the background. The app accepts files under 2 GiB, subject to available memory. See the [large TXT benchmarks](docs/qt-performance.md) for the macOS test with a 100 MB text file.
 

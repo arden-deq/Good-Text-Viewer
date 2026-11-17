@@ -9,6 +9,7 @@
 #include <QFileInfo>
 #include <QFontMetricsF>
 #include <QLabel>
+#include <QMenu>
 #include <QMenuBar>
 #include <QPushButton>
 #include <QSignalSpy>
@@ -235,6 +236,49 @@ private slots:
         QVERIFY((*next)->isEnabled());
         (*next)->click();
         QVERIFY(restoredPage.last().first().toLongLong() > stored);
+    }
+
+    void recentFiles()
+    {
+        QTemporaryDir dir;
+        QVERIFY(dir.isValid());
+        const auto config = dir.filePath(u"settings.ini"_s);
+        const auto first = dir.filePath(u"A & B.txt"_s);
+        const auto latest = dir.filePath(u"Recent.txt"_s);
+        for (const auto &path : {first, latest}) {
+            QFile file(path);
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QVERIFY(file.write("A short story.") > 0);
+        }
+        ReaderSettings prefs(config);
+        for (int index = 0; index < 12; ++index) {
+            Document document;
+            document.path = dir.filePath(QString::number(index) + u".txt"_s);
+            prefs.remember(document, true, 0);
+        }
+        const auto firstDocument = load(first).document;
+        QVERIFY(firstDocument);
+        prefs.remember(*firstDocument, true, 3);
+        prefs.remember(*firstDocument, false, 0);
+        QCOMPARE(prefs.recentFiles().size(), 10);
+        QCOMPARE(prefs.recentFiles().count(first), 1);
+        QCOMPARE(prefs.anchor(*firstDocument, true), 3);
+
+        ReaderWindow window(config);
+        QSignalSpy completed(&window, &ReaderWindow::layoutFinished);
+        window.show();
+        window.open(latest);
+        QTRY_VERIFY(!completed.isEmpty());
+        auto *recent = window.findChild<QMenu *>(u"recentFiles"_s);
+        QVERIFY(recent);
+        auto *fileMenu = qobject_cast<QMenu *>(recent->parentWidget());
+        QVERIFY(fileMenu);
+        QVERIFY(QMetaObject::invokeMethod(fileMenu, "aboutToShow"));
+        QCOMPARE(recent->actions().size(), 10);
+        QCOMPARE(recent->actions().at(0)->text(), u"Recent.txt"_s);
+        QCOMPARE(recent->actions().at(1)->text(), u"A && B.txt"_s);
+        recent->actions().at(1)->trigger();
+        QTRY_VERIFY(completed.size() >= 2);
     }
 
     void koreanInterfaceAndLoadError()

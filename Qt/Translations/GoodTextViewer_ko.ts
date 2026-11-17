@@ -80,6 +80,14 @@
             <translation>열기…</translation>
         </message>
         <message>
+            <source>Open Recent</source>
+            <translation>최근에 읽은 파일</translation>
+        </message>
+        <message>
+            <source>No recent files</source>
+            <translation>최근에 읽은 파일 없음</translation>
+        </message>
+        <message>
             <source>Close window</source>
             <translation>창 닫기</translation>
         </message>
