@@ -97,6 +97,7 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
     let stars = null;
     const code = query.get('code');
     if (code && !query.has('error')) {
+      let stage = 'token exchange';
       try {
         const exchange = await github('https://github.com/login/oauth/access_token', {
           method: 'POST',
@@ -109,9 +110,9 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
             redirect_uri: callback,
           }),
         });
-        if (!exchange.ok) throw new Error('Token exchange failed');
-        const { access_token: accessToken } = await exchange.json();
-        if (!accessToken) throw new Error('GitHub did not return a user token');
+        if (!exchange.ok) throw new Error(String(exchange.status));
+        const { access_token: accessToken, error } = await exchange.json();
+        if (!accessToken) throw new Error(/^[a-z_]{1,40}$/.test(error) ? error : 'missing_user_token');
 
         const headers = {
           Accept: 'application/vnd.github+json',
@@ -119,19 +120,22 @@ export function createStarServer({ clientId, clientSecret, origin = site, reques
           'X-GitHub-Api-Version': '2022-11-28',
           'User-Agent': 'GoodTextViewer-Site',
         };
+        stage = 'star request';
         const added = await github(`https://api.github.com/user/starred/${repo}`, {
           method: 'PUT', headers: { ...headers, 'Content-Length': '0' }, body: '',
         });
-        if (added.status !== 204) throw new Error(`GitHub star request returned ${added.status}`);
+        if (added.status !== 204) throw new Error(String(added.status));
         status = 'starred';
 
+        stage = 'count refresh';
         const repository = await github(`https://api.github.com/repos/${repo}`, { headers: { ...headers, 'Cache-Control': 'no-cache' } });
         if (repository.ok) {
           const count = (await repository.json()).stargazers_count;
           if (Number.isSafeInteger(count) && count >= 0) stars = count;
         }
-      } catch {
-        console.error('GitHub star flow:', status === 'starred' ? 'count refresh failed' : 'GitHub request failed');
+      } catch (error) {
+        const detail = error.cause?.code || (/^(?:\d{3}|[a-z_]{1,40})$/.test(error.message) ? error.message : error.name);
+        console.error('GitHub star flow:', stage, detail);
       }
     }
 

@@ -25,7 +25,7 @@ The hostname has its own Nginx virtual host and Let's Encrypt certificate. Its H
 
 ## GitHub star button
 
-The static build links to GitHub by default. For inline starring, configure a GitHub App with the Good Text Viewer site as its homepage, `<site>/star/callback` as its callback URL, Starring (write) account permission, Metadata (read) repository permission, and webhooks disabled. Visitors authorize the app in GitHub and only clicking the site's star button can initiate a star for this repository.
+The static build links to GitHub by default. For inline starring, configure a public GitHub App with the Good Text Viewer site as its homepage, `<site>/star/callback` as its callback URL, Starring (write) account permission, Metadata (read) repository permission, and webhooks disabled. Install the app on the Good Text Viewer repository so GitHub grants it the required repository access. Visitors authorize the app in GitHub and only clicking the site's star button can initiate a star for this repository.
 
 Install `deploy/goodtextviewer-star.service` in `/etc/systemd/system/`. Store its `GTV_GITHUB_CLIENT_ID` and `GTV_GITHUB_CLIENT_SECRET` environment settings in `/etc/goodtextviewer/star.env`, readable only by root. The Node.js 18 service listens on loopback. It uses each visitor token for the requested action and does not store it. The service returns to the same site page and displays the GitHub result and latest available count.
 
