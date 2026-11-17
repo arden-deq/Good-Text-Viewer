@@ -28,6 +28,9 @@ add_library(reader_core STATIC
 )
 target_include_directories(reader_core PUBLIC Qt/Core)
 target_link_libraries(reader_core PUBLIC Qt6::Gui)
+if(APPLE OR WIN32)
+    qt_add_resources(reader_core reading_font PREFIX "/" FILES Assets/Fonts/NotoSerifKR-Medium.ttf)
+endif()
 if(NOT WIN32)
     find_package(Iconv REQUIRED)
     target_link_libraries(reader_core PRIVATE Iconv::Iconv)
@@ -103,13 +106,6 @@ endif()
 set(reader_targets GoodTextViewer)
 if(BUILD_TESTING)
     list(APPEND reader_targets reader_tests)
-endif()
-if(APPLE OR WIN32)
-    foreach(target IN LISTS reader_targets)
-        qt_add_resources(${target} reading_font PREFIX "/"
-            OPTIONS --no-compress
-            FILES Assets/Fonts/NotoSerifKR-Medium.ttf)
-    endforeach()
 endif()
 qt_add_translations(TARGETS ${reader_targets}
     SOURCE_TARGETS GoodTextViewer reader_core
